@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.facturapp.presentation.controller.EmpresaConfigController"
+      styleClass="section-root" spacing="0">
+
+    <HBox styleClass="section-header" alignment="CENTER_LEFT" spacing="12">
+        <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
+        <VBox HBox.hgrow="ALWAYS" spacing="2">
+            <Label text="Mis Empresas" styleClass="page-title"/>
+            <Label text="Gestiona las empresas emisoras. Podrás elegir desde qué empresa emites cada factura."
+                   styleClass="page-subtitle"/>
+        </VBox>
+        <Button text="+ Nueva Empresa" onAction="#onNuevaEmpresa" styleClass="btn-primary"/>
+    </HBox>
+
+    <HBox VBox.vgrow="ALWAYS" spacing="0">
+
+        <!-- ===== PANEL IZQUIERDO: Lista de empresas ===== -->
+        <VBox prefWidth="260" styleClass="card" spacing="12">
+            <padding><Insets top="16" right="12" bottom="16" left="16"/></padding>
+            <Label text="Empresas registradas" styleClass="card-title"/>
+            <ListView fx:id="listaEmpresas" VBox.vgrow="ALWAYS" prefHeight="500"/>
+            <Label text="Selecciona una empresa para editarla." styleClass="login-hint" wrapText="true"/>
+        </VBox>
+
+        <!-- ===== PANEL DERECHO: Formulario ===== -->
+        <ScrollPane fitToWidth="true" HBox.hgrow="ALWAYS" styleClass="content-scroll">
+            <VBox spacing="16">
+                <padding><Insets top="20" right="24" bottom="24" left="20"/></padding>
+
+                <!-- Mensaje estado -->
+                <Label fx:id="lblEstado" wrapText="true" maxWidth="Infinity"/>
+
+                <!-- Título del formulario -->
+                <Label fx:id="lblFormTitulo" text="Nueva empresa" styleClass="card-title"/>
+
+                <!-- Identificación -->
+                <VBox styleClass="card" spacing="14">
+                    <Label text="Identificación" styleClass="form-label"/>
+                    <HBox spacing="16">
+                        <VBox HBox.hgrow="ALWAYS" spacing="6">
+                            <Label text="Nombre de la empresa" styleClass="form-label"/>
+                            <TextField fx:id="txtNombreEmpresa" promptText="Ej: Mi Empresa SL" styleClass="form-input"/>
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="6">
+                            <Label text="NIF / CIF" styleClass="form-label"/>
+                            <TextField fx:id="txtNif" promptText="Ej: B12345678" styleClass="form-input"/>
+                        </VBox>
+                    </HBox>
+                    <HBox spacing="16">
+                        <VBox HBox.hgrow="ALWAYS" spacing="6">
+                            <Label text="Nombre del emisor" styleClass="form-label"/>
+                            <TextField fx:id="txtNombreEmisor" promptText="Ej: Juan García" styleClass="form-input"/>
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="6">
+                            <Label text="Cargo" styleClass="form-label"/>
+                            <TextField fx:id="txtCargo" promptText="Ej: Gerente" styleClass="form-input"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- Contacto -->
+                <VBox styleClass="card" spacing="14">
+                    <Label text="Contacto" styleClass="form-label"/>
+                    <HBox spacing="16">
+                        <VBox HBox.hgrow="ALWAYS" spacing="6">
+                            <Label text="Teléfono" styleClass="form-label"/>
+                            <TextField fx:id="txtTelefono" promptText="+34 600 000 000" styleClass="form-input"/>
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="6">
+                            <Label text="Email" styleClass="form-label"/>
+                            <TextField fx:id="txtEmail" promptText="info@miempresa.com" styleClass="form-input"/>
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="6">
+                            <Label text="Web" styleClass="form-label"/>
+                            <TextField fx:id="txtWeb" promptText="www.miempresa.com" styleClass="form-input"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- Dirección -->
+                <VBox styleClass="card" spacing="14">
+                    <Label text="Dirección" styleClass="form-label"/>
+                    <TextField fx:id="txtDireccion" promptText="Calle Mayor 10, 2º A" styleClass="form-input"/>
+                    <HBox spacing="16">
+                        <VBox spacing="6" prefWidth="100">
+                            <Label text="C.P." styleClass="form-label"/>
+                            <TextField fx:id="txtCodigoPostal" promptText="11001" styleClass="form-input"/>
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="6">
+                            <Label text="Ciudad" styleClass="form-label"/>
+                            <TextField fx:id="txtCiudad" promptText="Cádiz" styleClass="form-input"/>
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="6">
+                            <Label text="Provincia" styleClass="form-label"/>
+                            <TextField fx:id="txtProvincia" promptText="Cádiz" styleClass="form-input"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- Datos PDF -->
+                <VBox styleClass="card" spacing="14">
+                    <Label text="Datos adicionales del PDF" styleClass="form-label"/>
+                    <VBox spacing="6">
+                        <Label text="Cuenta bancaria (IBAN)" styleClass="form-label"/>
+                        <TextField fx:id="txtCuentaBancaria" promptText="ES91 2100 0418 4502 0005 1332" styleClass="form-input"/>
+                    </VBox>
+                    <VBox spacing="6">
+                        <Label text="Notas al pie" styleClass="form-label"/>
+                        <TextArea fx:id="txtNotasPie" promptText="Texto libre al pie de la factura..."
+                                  styleClass="form-input" prefRowCount="3" wrapText="true"/>
+                    </VBox>
+                </VBox>
+
+                <!-- Botones -->
+                <HBox spacing="12" alignment="CENTER_RIGHT">
+                    <Button fx:id="btnEliminar" text="Eliminar empresa" onAction="#onEliminar"
+                            styleClass="btn-danger" disable="true"/>
+                    <Button text="Guardar" onAction="#onGuardar" styleClass="btn-primary"/>
+                </HBox>
+
+            </VBox>
+        </ScrollPane>
+    </HBox>
+</VBox>

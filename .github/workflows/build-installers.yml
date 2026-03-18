@@ -1,0 +1,148 @@
+name: Build Installers
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:   # permite lanzarlo manualmente desde GitHub
+
+jobs:
+
+  # ─────────────────────────────────────────────
+  #  macOS → .dmg
+  # ─────────────────────────────────────────────
+  build-mac:
+    name: Build macOS DMG
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21 (with JavaFX)
+        uses: actions/setup-java@v4
+        with:
+          distribution: liberica
+          java-version: 21
+          java-package: jdk+fx        # Liberica Full incluye JavaFX
+
+      - name: Cache Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      - name: Build fat JAR (sin JavaFX)
+        run: mvn package -q
+
+      - name: Prepare distribution files
+        run: |
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "arm64" ]; then
+            JFX_PLATFORM="mac-aarch64"
+          else
+            JFX_PLATFORM="mac"
+          fi
+          JFX_VER="21.0.2"
+          M2="$HOME/.m2/repository/org/openjfx"
+
+          mkdir -p target/dist-mac
+          cp target/facturapp-1.0.0.jar target/dist-mac/
+
+          for MODULE in javafx-base javafx-graphics javafx-controls javafx-fxml; do
+            cp "$M2/$MODULE/$JFX_VER/$MODULE-$JFX_VER-$JFX_PLATFORM.jar" target/dist-mac/
+          done
+
+      - name: Create DMG with jpackage
+        run: |
+          mkdir -p target/installer
+          jpackage \
+            --type dmg \
+            --input target/dist-mac \
+            --main-jar facturapp-1.0.0.jar \
+            --main-class com.facturapp.FacturApp \
+            --java-options "--module-path \$APPDIR" \
+            --java-options "--add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base" \
+            --java-options "--add-opens java.base/java.lang=ALL-UNNAMED" \
+            --java-options "-Dfile.encoding=UTF-8" \
+            --name "LedgerFlow" \
+            --app-version "1.0.0" \
+            --vendor "LedgerFlow" \
+            --dest target/installer
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LedgerFlow-macOS
+          path: target/installer/*.dmg
+          retention-days: 30
+
+  # ─────────────────────────────────────────────
+  #  Windows → .exe
+  # ─────────────────────────────────────────────
+  build-windows:
+    name: Build Windows EXE
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21 (with JavaFX)
+        uses: actions/setup-java@v4
+        with:
+          distribution: liberica
+          java-version: 21
+          java-package: jdk+fx
+
+      - name: Cache Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      - name: Build fat JAR (sin JavaFX)
+        run: mvn package -q
+
+      - name: Prepare distribution files
+        shell: bash
+        run: |
+          JFX_VER="21.0.2"
+          M2="$HOME/.m2/repository/org/openjfx"
+          JFX_PLATFORM="win"
+
+          mkdir -p target/dist-win
+          cp target/facturapp-1.0.0.jar target/dist-win/
+
+          for MODULE in javafx-base javafx-graphics javafx-controls javafx-fxml; do
+            cp "$M2/$MODULE/$JFX_VER/$MODULE-$JFX_VER-$JFX_PLATFORM.jar" target/dist-win/
+          done
+
+      - name: Create EXE with jpackage
+        shell: cmd
+        run: |
+          mkdir target\installer
+          jpackage ^
+            --type exe ^
+            --input target\dist-win ^
+            --main-jar facturapp-1.0.0.jar ^
+            --main-class com.facturapp.FacturApp ^
+            --java-options "--module-path $APPDIR" ^
+            --java-options "--add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base" ^
+            --java-options "--add-opens java.base/java.lang=ALL-UNNAMED" ^
+            --java-options "-Dfile.encoding=UTF-8" ^
+            --name "LedgerFlow" ^
+            --app-version "1.0.0" ^
+            --vendor "LedgerFlow" ^
+            --win-shortcut ^
+            --win-menu ^
+            --win-menu-group "LedgerFlow" ^
+            --dest target\installer
+
+      - name: Upload EXE artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LedgerFlow-Windows
+          path: target/installer/*.exe
+          retention-days: 30

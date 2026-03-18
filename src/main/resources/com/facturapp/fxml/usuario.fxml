@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.facturapp.presentation.controller.UsuarioController"
+      styleClass="section-root" spacing="0">
+
+    <HBox styleClass="section-header" alignment="CENTER_LEFT" spacing="12">
+        <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
+        <VBox HBox.hgrow="ALWAYS" spacing="2">
+            <Label text="Gestión de Usuarios" styleClass="page-title"/>
+            <Label text="Administra los accesos al sistema" styleClass="page-subtitle"/>
+        </VBox>
+        <Button text="+ Nuevo Usuario" onAction="#onNuevo" styleClass="btn-primary"/>
+    </HBox>
+
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="content-scroll">
+        <VBox spacing="20">
+            <padding><Insets top="20" right="24" bottom="24" left="24"/></padding>
+
+            <!-- Formulario -->
+            <VBox styleClass="card" spacing="16">
+                <Label fx:id="lblFormTitulo" text="Nuevo Usuario" styleClass="card-title"/>
+                <GridPane hgap="16" vgap="12">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="33"/>
+                        <ColumnConstraints percentWidth="33"/>
+                        <ColumnConstraints percentWidth="34"/>
+                    </columnConstraints>
+
+                    <Label text="Usuario *" styleClass="form-label"
+                           GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <TextField fx:id="txtUsername" promptText="Nombre de usuario"
+                               styleClass="form-input" maxWidth="Infinity"
+                               GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+
+                    <Label text="Email" styleClass="form-label"
+                           GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                    <TextField fx:id="txtEmail" promptText="correo@ejemplo.com"
+                               styleClass="form-input" maxWidth="Infinity"
+                               GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                    <Label text="Rol" styleClass="form-label"
+                           GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                    <ComboBox fx:id="cmbRol" maxWidth="Infinity"
+                              GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+
+                    <Label text="Contraseña *" styleClass="form-label"
+                           GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <PasswordField fx:id="txtPassword" promptText="Mínimo 6 caracteres"
+                                  styleClass="form-input" maxWidth="Infinity"
+                                  GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                </GridPane>
+
+                <HBox spacing="10" alignment="CENTER_RIGHT">
+                    <Button fx:id="btnCancelar" text="Cancelar" onAction="#onCancelar"
+                            styleClass="btn-secondary" visible="false"/>
+                    <Button fx:id="btnGuardar"  text="Guardar"  onAction="#onGuardar"
+                            styleClass="btn-primary"  visible="false"/>
+                </HBox>
+            </VBox>
+
+            <!-- Tabla de usuarios -->
+            <VBox styleClass="card" spacing="12">
+                <Label text="Usuarios del Sistema" styleClass="card-title"/>
+                <TableView fx:id="tablaUsuarios" prefHeight="380">
+                    <columns>
+                        <TableColumn fx:id="colUsername" text="Usuario"  prefWidth="150"/>
+                        <TableColumn fx:id="colEmail"    text="Email"    prefWidth="200"/>
+                        <TableColumn fx:id="colRol"      text="Rol"      prefWidth="120"/>
+                        <TableColumn fx:id="colEstado"   text="Estado"   prefWidth="90"/>
+                        <TableColumn fx:id="colAcciones" text="Acciones" prefWidth="220"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="No hay usuarios registrados." styleClass="table-placeholder"/>
+                    </placeholder>
+                </TableView>
+            </VBox>
+        </VBox>
+    </ScrollPane>
+</VBox>

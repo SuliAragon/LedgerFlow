@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane fitToWidth="true" styleClass="content-scroll"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.facturapp.presentation.controller.InicioController">
+    <VBox spacing="24">
+        <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+
+        <!-- Bienvenida -->
+        <VBox spacing="4">
+            <Label fx:id="lblBienvenida" text="Bienvenido" styleClass="page-title"/>
+            <Label text="Resumen de actividad del sistema" styleClass="page-subtitle"/>
+        </VBox>
+
+        <!-- Cards KPI secundarios -->
+        <HBox spacing="16">
+            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="6">
+                <Label text="CLIENTES REGISTRADOS" styleClass="stat-label"/>
+                <Label fx:id="lblTotalClientes" text="0" styleClass="stat-value"/>
+            </VBox>
+            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="6">
+                <Label text="PRODUCTOS ACTIVOS" styleClass="stat-label"/>
+                <Label fx:id="lblTotalProductos" text="0" styleClass="stat-value"/>
+            </VBox>
+            <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" spacing="6">
+                <Label text="FACTURAS EMITIDAS" styleClass="stat-label"/>
+                <Label fx:id="lblTotalFacturas" text="0" styleClass="stat-value"/>
+            </VBox>
+            <VBox styleClass="stat-card stat-card-accent" HBox.hgrow="ALWAYS" spacing="6">
+                <Label text="FACTURACIÓN ESTE MES" styleClass="stat-label-light"/>
+                <Label fx:id="lblFacturacionMes" text="0,00 €" styleClass="stat-value-light"/>
+            </VBox>
+            <VBox styleClass="stat-card stat-card-dark" HBox.hgrow="ALWAYS" spacing="6">
+                <Label text="FACTURACIÓN ESTE AÑO" styleClass="stat-label-light"/>
+                <Label fx:id="lblFacturacionAnio" text="0,00 €" styleClass="stat-value-light"/>
+            </VBox>
+        </HBox>
+
+        <!-- Dos columnas: últimas facturas + top clientes -->
+        <HBox spacing="16" VBox.vgrow="ALWAYS">
+
+            <!-- Últimas facturas -->
+            <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="12">
+                <Label text="Últimas Facturas" styleClass="card-title"/>
+                <TableView fx:id="tablaUltimas" VBox.vgrow="ALWAYS" prefHeight="280">
+                    <columns>
+                        <TableColumn fx:id="colUltNumero"  text="Nº Factura" prefWidth="110"/>
+                        <TableColumn fx:id="colUltCliente" text="Cliente"    prefWidth="150"/>
+                        <TableColumn fx:id="colUltFecha"   text="Fecha"      prefWidth="90"/>
+                        <TableColumn fx:id="colUltTotal"   text="Total"      prefWidth="100"/>
+                        <TableColumn fx:id="colUltEstado"  text="Estado"     prefWidth="90"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="Sin facturas aún" styleClass="table-placeholder"/>
+                    </placeholder>
+                </TableView>
+            </VBox>
+
+            <!-- Top clientes -->
+            <VBox styleClass="card" prefWidth="300" spacing="12">
+                <Label text="Top Clientes" styleClass="card-title"/>
+                <TableView fx:id="tablaTopClientes" VBox.vgrow="ALWAYS" prefHeight="280">
+                    <columns>
+                        <TableColumn fx:id="colTopNombre" text="Cliente"    prefWidth="160"/>
+                        <TableColumn fx:id="colTopTotal"  text="Facturado"  prefWidth="110"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="Sin datos" styleClass="table-placeholder"/>
+                    </placeholder>
+                </TableView>
+            </VBox>
+        </HBox>
+    </VBox>
+</ScrollPane>

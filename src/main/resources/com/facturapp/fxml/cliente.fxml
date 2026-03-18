@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.facturapp.presentation.controller.ClienteController"
+      styleClass="section-root" spacing="0">
+
+    <!-- Cabecera de sección -->
+    <HBox styleClass="section-header" alignment="CENTER_LEFT" spacing="12">
+        <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
+        <VBox HBox.hgrow="ALWAYS" spacing="2">
+            <Label text="Clientes" styleClass="page-title"/>
+            <Label text="Gestión del catálogo de clientes" styleClass="page-subtitle"/>
+        </VBox>
+        <Button text="+ Nuevo Cliente" onAction="#onNuevo" styleClass="btn-primary"/>
+    </HBox>
+
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="content-scroll">
+        <VBox spacing="20">
+            <padding><Insets top="20" right="24" bottom="24" left="24"/></padding>
+
+            <!-- Formulario (visible en modo edición) -->
+            <VBox fx:id="panelFormulario" styleClass="card" spacing="16">
+                <Label fx:id="lblFormTitulo" text="Nuevo Cliente" styleClass="card-title"/>
+
+                <GridPane hgap="16" vgap="12">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50"/>
+                        <ColumnConstraints percentWidth="50"/>
+                    </columnConstraints>
+
+                    <Label text="Nombre *" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <TextField fx:id="txtNombre" promptText="Nombre completo o empresa"
+                               styleClass="form-input" maxWidth="Infinity"
+                               GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+
+                    <Label text="NIF / CIF *" styleClass="form-label" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                    <TextField fx:id="txtNifCif" promptText="Ej: 12345678A / B12345678"
+                               styleClass="form-input" maxWidth="Infinity"
+                               GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                    <Label text="Email" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <TextField fx:id="txtEmail" promptText="correo@ejemplo.com"
+                               styleClass="form-input" maxWidth="Infinity"
+                               GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+
+                    <Label text="Teléfono" styleClass="form-label" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                    <TextField fx:id="txtTelefono" promptText="Ej: 612 345 678"
+                               styleClass="form-input" maxWidth="Infinity"
+                               GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                    <Label text="Dirección" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="4"
+                           GridPane.columnSpan="2"/>
+                    <TextField fx:id="txtDireccion" promptText="Calle, número, ciudad, CP"
+                               styleClass="form-input" maxWidth="Infinity"
+                               GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.columnSpan="2"/>
+                </GridPane>
+
+                <HBox spacing="10" alignment="CENTER_RIGHT">
+                    <Button fx:id="btnCancelar" text="Cancelar" onAction="#onCancelar"
+                            styleClass="btn-secondary" visible="false"/>
+                    <Button fx:id="btnGuardar"  text="Guardar"  onAction="#onGuardar"
+                            styleClass="btn-primary"  visible="false"/>
+                </HBox>
+            </VBox>
+
+            <!-- Barra de búsqueda -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <TextField fx:id="txtBuscar" promptText="Buscar por nombre..."
+                           styleClass="form-input" prefWidth="300"/>
+                <Button text="Buscar" onAction="#onBuscar" styleClass="btn-secondary"/>
+            </HBox>
+
+            <!-- Tabla de clientes -->
+            <VBox styleClass="card" spacing="12" VBox.vgrow="ALWAYS">
+                <Label text="Listado de Clientes" styleClass="card-title"/>
+                <TableView fx:id="tablaClientes" VBox.vgrow="ALWAYS" prefHeight="420">
+                    <columns>
+                        <TableColumn fx:id="colNombre"    text="Nombre"    prefWidth="160"/>
+                        <TableColumn fx:id="colNifCif"    text="NIF/CIF"   prefWidth="110"/>
+                        <TableColumn fx:id="colEmail"     text="Email"     prefWidth="170"/>
+                        <TableColumn fx:id="colTelefono"  text="Teléfono"  prefWidth="110"/>
+                        <TableColumn fx:id="colDireccion" text="Dirección" prefWidth="200"/>
+                        <TableColumn fx:id="colAcciones"  text="Acciones"  prefWidth="160"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="No hay clientes registrados. Pulsa '+ Nuevo Cliente' para añadir."
+                               styleClass="table-placeholder"/>
+                    </placeholder>
+                </TableView>
+            </VBox>
+        </VBox>
+    </ScrollPane>
+</VBox>

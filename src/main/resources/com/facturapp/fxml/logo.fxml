@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.facturapp.presentation.controller.LogoController"
+      styleClass="section-root" spacing="0">
+
+    <HBox styleClass="section-header" alignment="CENTER_LEFT" spacing="12">
+        <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
+        <VBox HBox.hgrow="ALWAYS" spacing="2">
+            <Label text="Logos de Empresa" styleClass="page-title"/>
+            <Label text="Gestiona las imágenes de empresa que aparecen en las facturas PDF"
+                   styleClass="page-subtitle"/>
+        </VBox>
+    </HBox>
+
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="content-scroll">
+        <VBox spacing="20">
+            <padding><Insets top="20" right="24" bottom="24" left="24"/></padding>
+
+            <!-- Aviso logo activo -->
+            <Label fx:id="lblActivoInfo" styleClass="logo-activo-info" wrapText="true"/>
+
+            <!-- Dos columnas: Importar + Preview -->
+            <HBox spacing="20">
+
+                <!-- Panel importar nuevo logo -->
+                <VBox styleClass="card" spacing="16" HBox.hgrow="ALWAYS">
+                    <Label text="Importar Nuevo Logo" styleClass="card-title"/>
+
+                    <Label text="Nombre del logo *" styleClass="form-label"/>
+                    <TextField fx:id="txtNombreLogo" promptText="Ej: Mi Empresa SL"
+                               styleClass="form-input"/>
+
+                    <Label text="Fichero de imagen" styleClass="form-label"/>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <TextField fx:id="txtRutaFichero" promptText="Selecciona una imagen..."
+                                   styleClass="form-input" HBox.hgrow="ALWAYS" editable="false"/>
+                        <Button fx:id="btnSeleccionarFichero" text="Examinar..."
+                                onAction="#onSeleccionarFichero" styleClass="btn-secondary"/>
+                    </HBox>
+
+                    <Label text="Formatos soportados: PNG, JPG, GIF, BMP" styleClass="login-hint"/>
+
+                    <Button text="⬆ Importar Logo" onAction="#onImportarLogo"
+                            styleClass="btn-primary" maxWidth="Infinity"/>
+                </VBox>
+
+                <!-- Preview del logo seleccionado -->
+                <VBox styleClass="card" prefWidth="260" spacing="16" alignment="CENTER">
+                    <Label text="Vista Previa" styleClass="card-title"/>
+                    <VBox styleClass="logo-preview-box" alignment="CENTER" prefHeight="180">
+                        <ImageView fx:id="imgPreview" fitWidth="200" fitHeight="160"
+                                   preserveRatio="true" smooth="true"/>
+                    </VBox>
+                    <Label fx:id="lblPreviewNombre" text="Selecciona un logo"
+                           styleClass="login-hint" wrapText="true" textAlignment="CENTER"/>
+                </VBox>
+            </HBox>
+
+            <!-- Tabla de logos -->
+            <VBox styleClass="card" spacing="12">
+                <Label text="Logos Registrados" styleClass="card-title"/>
+                <TableView fx:id="tablaLogos" prefHeight="320">
+                    <columns>
+                        <TableColumn fx:id="colNombre"  text="Nombre"        prefWidth="180"/>
+                        <TableColumn fx:id="colRuta"    text="Fichero"       prefWidth="180"/>
+                        <TableColumn fx:id="colFecha"   text="Importado"     prefWidth="100"/>
+                        <TableColumn fx:id="colEstado"  text="En uso"        prefWidth="90"/>
+                        <TableColumn fx:id="colAcciones" text="Acciones"     prefWidth="260"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="No hay logos importados. Usa el formulario superior para añadir el primero."
+                               styleClass="table-placeholder"/>
+                    </placeholder>
+                </TableView>
+            </VBox>
+        </VBox>
+    </ScrollPane>
+</VBox>

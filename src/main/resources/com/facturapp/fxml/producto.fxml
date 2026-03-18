@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.facturapp.presentation.controller.ProductoController"
+      styleClass="section-root" spacing="0">
+
+    <HBox styleClass="section-header" alignment="CENTER_LEFT" spacing="12">
+        <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
+        <VBox HBox.hgrow="ALWAYS" spacing="2">
+            <Label text="Productos y Servicios" styleClass="page-title"/>
+            <Label text="Catálogo de productos y servicios facturables" styleClass="page-subtitle"/>
+        </VBox>
+        <Button text="+ Nuevo Producto" onAction="#onNuevo" styleClass="btn-primary"/>
+    </HBox>
+
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="content-scroll">
+        <VBox spacing="20">
+            <padding><Insets top="20" right="24" bottom="24" left="24"/></padding>
+
+            <!-- Formulario -->
+            <VBox styleClass="card" spacing="16">
+                <Label fx:id="lblFormTitulo" text="Nuevo Producto" styleClass="card-title"/>
+                <GridPane hgap="16" vgap="12">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50"/>
+                        <ColumnConstraints percentWidth="25"/>
+                        <ColumnConstraints percentWidth="25"/>
+                    </columnConstraints>
+
+                    <Label text="Nombre *" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <TextField fx:id="txtNombre" promptText="Nombre del producto o servicio"
+                               styleClass="form-input" maxWidth="Infinity"
+                               GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+
+                    <Label text="Precio (€) *" styleClass="form-label" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                    <TextField fx:id="txtPrecio" promptText="0.00"
+                               styleClass="form-input" maxWidth="Infinity"
+                               GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                    <Label text="IVA (%)" styleClass="form-label" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                    <ComboBox fx:id="cmbIva" maxWidth="Infinity"
+                              GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+
+                    <Label text="Descripción" styleClass="form-label"
+                           GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="3"/>
+                    <TextArea fx:id="txtDescripcion" promptText="Descripción opcional del producto"
+                              styleClass="form-input" prefRowCount="3" maxWidth="Infinity"
+                              GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.columnSpan="3"/>
+                </GridPane>
+
+                <HBox spacing="10" alignment="CENTER_RIGHT">
+                    <Button fx:id="btnCancelar" text="Cancelar" onAction="#onCancelar"
+                            styleClass="btn-secondary" visible="false"/>
+                    <Button fx:id="btnGuardar"  text="Guardar"  onAction="#onGuardar"
+                            styleClass="btn-primary"  visible="false"/>
+                </HBox>
+            </VBox>
+
+            <!-- Búsqueda -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <TextField fx:id="txtBuscar" promptText="Buscar por nombre..."
+                           styleClass="form-input" prefWidth="300"/>
+                <Button text="Buscar" onAction="#onBuscar" styleClass="btn-secondary"/>
+            </HBox>
+
+            <!-- Tabla -->
+            <VBox styleClass="card" spacing="12">
+                <Label text="Catálogo de Productos" styleClass="card-title"/>
+                <TableView fx:id="tablaProductos" prefHeight="400">
+                    <columns>
+                        <TableColumn fx:id="colNombre"      text="Nombre"      prefWidth="180"/>
+                        <TableColumn fx:id="colDescripcion" text="Descripción" prefWidth="220"/>
+                        <TableColumn fx:id="colPrecio"      text="Precio"      prefWidth="100"/>
+                        <TableColumn fx:id="colIva"         text="IVA"         prefWidth="70"/>
+                        <TableColumn fx:id="colEstado"      text="Estado"      prefWidth="80"/>
+                        <TableColumn fx:id="colAcciones"    text="Acciones"    prefWidth="220"/>
+                    </columns>
+                    <placeholder>
+                        <Label text="No hay productos registrados. Pulsa '+ Nuevo Producto' para añadir."
+                               styleClass="table-placeholder"/>
+                    </placeholder>
+                </TableView>
+            </VBox>
+        </VBox>
+    </ScrollPane>
+</VBox>

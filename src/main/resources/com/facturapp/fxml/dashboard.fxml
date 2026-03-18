@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:id="mainPane"
+            fx:controller="com.facturapp.presentation.controller.DashboardController"
+            styleClass="dashboard-root"
+            prefWidth="1280" prefHeight="800">
+
+    <!-- ====== SIDEBAR NAVEGACIÓN ====== -->
+    <left>
+        <VBox styleClass="sidebar" prefWidth="220" spacing="4">
+            <padding><Insets top="30" right="12" bottom="30" left="12"/></padding>
+
+            <!-- Logo -->
+            <VBox styleClass="sidebar-brand" alignment="CENTER">
+                <padding><Insets bottom="32"/></padding>
+                <Label text="FacturApp" styleClass="sidebar-brand-text"/>
+                <Label text="Facturación Pro" styleClass="sidebar-brand-sub"/>
+            </VBox>
+
+            <!-- Navegación -->
+            <Label text="MENÚ" styleClass="sidebar-section-label"/>
+
+            <Button fx:id="btnDashboard" text="🏠  Dashboard"
+                    onAction="#mostrarInicioDashboard"
+                    styleClass="nav-btn, nav-btn-activo" maxWidth="Infinity"/>
+
+            <Button fx:id="btnClientes" text="👥  Clientes"
+                    onAction="#mostrarClientes"
+                    styleClass="nav-btn" maxWidth="Infinity"/>
+
+            <Button fx:id="btnProductos" text="📦  Productos"
+                    onAction="#mostrarProductos"
+                    styleClass="nav-btn" maxWidth="Infinity"/>
+
+            <Button fx:id="btnFacturas" text="🧾  Facturas"
+                    onAction="#mostrarFacturas"
+                    styleClass="nav-btn" maxWidth="Infinity"/>
+
+            <Button fx:id="btnLogos" text="🖼  Logos Empresa"
+                    onAction="#mostrarLogos"
+                    styleClass="nav-btn" maxWidth="Infinity"/>
+
+            <Button fx:id="btnMiEmpresa" text="🏢  Mi Empresa"
+                    onAction="#mostrarMiEmpresa"
+                    styleClass="nav-btn" maxWidth="Infinity"/>
+
+            <!-- Solo visible para ADMIN -->
+            <Button fx:id="btnUsuarios" text="🔐  Usuarios"
+                    onAction="#mostrarUsuarios"
+                    styleClass="nav-btn" maxWidth="Infinity"/>
+
+            <!-- Espaciador flexible -->
+            <Region VBox.vgrow="ALWAYS"/>
+
+            <!-- Info usuario + Logout -->
+            <VBox styleClass="sidebar-user" spacing="4">
+                <padding><Insets top="16"/></padding>
+                <Label fx:id="lblUsuario" text="" styleClass="sidebar-user-name"/>
+                <Label fx:id="lblRol"     text="" styleClass="sidebar-user-role"/>
+                <Button text="Cerrar sesión" onAction="#cerrarSesion"
+                        styleClass="btn-logout" maxWidth="Infinity"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- ====== ÁREA PRINCIPAL ====== -->
+    <center>
+        <VBox styleClass="main-content">
+            <!-- KPIs en la parte superior (siempre visibles) -->
+            <HBox styleClass="kpi-bar" spacing="16">
+                <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
+
+                <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS">
+                    <Label text="Clientes" styleClass="kpi-label"/>
+                    <Label fx:id="lblTotalClientes" text="0" styleClass="kpi-value"/>
+                </VBox>
+                <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS">
+                    <Label text="Productos" styleClass="kpi-label"/>
+                    <Label fx:id="lblTotalProductos" text="0" styleClass="kpi-value"/>
+                </VBox>
+                <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS">
+                    <Label text="Facturas" styleClass="kpi-label"/>
+                    <Label fx:id="lblTotalFacturas" text="0" styleClass="kpi-value"/>
+                </VBox>
+                <VBox styleClass="kpi-card" HBox.hgrow="ALWAYS">
+                    <Label text="Facturación (mes)" styleClass="kpi-label"/>
+                    <Label fx:id="lblFacturacionMes" text="0,00 €" styleClass="kpi-value-money"/>
+                </VBox>
+            </HBox>
+
+            <!-- Contenido dinámico -->
+            <StackPane fx:id="contentArea" VBox.vgrow="ALWAYS" styleClass="content-area">
+                <padding><Insets top="0" right="0" bottom="0" left="0"/></padding>
+            </StackPane>
+        </VBox>
+    </center>
+</BorderPane>
