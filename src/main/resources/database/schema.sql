@@ -81,7 +81,32 @@ CREATE TABLE IF NOT EXISTS empresa_logos (
     activo       BOOLEAN       NOT NULL DEFAULT FALSE
 );
 
+CREATE TABLE IF NOT EXISTS presupuestos (
+    id             BIGINT        AUTO_INCREMENT PRIMARY KEY,
+    numero         VARCHAR(25)   NOT NULL UNIQUE,
+    cliente_id     BIGINT        NOT NULL,
+    fecha_emision  DATE          NOT NULL DEFAULT CURRENT_DATE,
+    estado         VARCHAR(20)   NOT NULL DEFAULT 'BORRADOR',
+    observaciones  VARCHAR(500),
+    empresa_id     BIGINT,
+    CONSTRAINT fk_pres_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+    CONSTRAINT fk_pres_empresa FOREIGN KEY (empresa_id) REFERENCES empresa_config(id)
+);
+
+CREATE TABLE IF NOT EXISTS lineas_presupuesto (
+    id               BIGINT         AUTO_INCREMENT PRIMARY KEY,
+    presupuesto_id   BIGINT         NOT NULL,
+    producto_id      BIGINT         NOT NULL,
+    cantidad         INT            NOT NULL DEFAULT 1,
+    precio_unitario  DECIMAL(10, 2) NOT NULL,
+    descuento        DECIMAL(5, 2)  NOT NULL DEFAULT 0.00,
+    CONSTRAINT fk_lp_presupuesto FOREIGN KEY (presupuesto_id) REFERENCES presupuestos(id) ON DELETE CASCADE,
+    CONSTRAINT fk_lp_producto    FOREIGN KEY (producto_id)    REFERENCES productos(id)
+);
+
 -- Índices para mejorar rendimiento en consultas frecuentes
-CREATE INDEX IF NOT EXISTS idx_facturas_cliente   ON facturas(cliente_id);
-CREATE INDEX IF NOT EXISTS idx_facturas_fecha     ON facturas(fecha_emision);
-CREATE INDEX IF NOT EXISTS idx_lineas_factura_id  ON lineas_factura(factura_id);
+CREATE INDEX IF NOT EXISTS idx_facturas_cliente      ON facturas(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_facturas_fecha        ON facturas(fecha_emision);
+CREATE INDEX IF NOT EXISTS idx_lineas_factura_id     ON lineas_factura(factura_id);
+CREATE INDEX IF NOT EXISTS idx_presupuestos_cliente  ON presupuestos(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_lineas_presupuesto_id ON lineas_presupuesto(presupuesto_id);

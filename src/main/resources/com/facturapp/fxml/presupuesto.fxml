@@ -4,16 +4,16 @@
 <?import javafx.geometry.Insets?>
 
 <VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.facturapp.presentation.controller.FacturaController"
+      fx:controller="com.facturapp.presentation.controller.PresupuestoController"
       styleClass="section-root" spacing="0">
 
     <HBox styleClass="section-header" alignment="CENTER_LEFT" spacing="12">
         <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
         <VBox HBox.hgrow="ALWAYS" spacing="2">
-            <Label text="Facturas" styleClass="page-title"/>
-            <Label text="Gestión de facturas emitidas" styleClass="page-subtitle"/>
+            <Label text="Presupuestos" styleClass="page-title"/>
+            <Label text="Gestión de presupuestos emitidos" styleClass="page-subtitle"/>
         </VBox>
-        <Button text="+ Nueva Factura" onAction="#onNuevaFactura" styleClass="btn-primary"/>
+        <Button text="+ Nuevo Presupuesto" onAction="#onNuevoPresupuesto" styleClass="btn-primary"/>
     </HBox>
 
     <!-- ===== PANEL LISTADO ===== -->
@@ -22,47 +22,19 @@
             <VBox spacing="20">
                 <padding><Insets top="20" right="24" bottom="24" left="24"/></padding>
 
-                <!-- Filtros -->
-                <VBox styleClass="card" spacing="12">
-                    <Label text="Filtrar Facturas" styleClass="card-title"/>
-                    <HBox spacing="16" alignment="CENTER_LEFT">
-                        <VBox spacing="4">
-                            <Label text="Desde" styleClass="form-label"/>
-                            <DatePicker fx:id="dpDesde" promptText="dd/mm/aaaa"/>
-                        </VBox>
-                        <VBox spacing="4">
-                            <Label text="Hasta" styleClass="form-label"/>
-                            <DatePicker fx:id="dpHasta" promptText="dd/mm/aaaa"/>
-                        </VBox>
-                        <VBox spacing="4">
-                            <Label text="Cliente" styleClass="form-label"/>
-                            <ComboBox fx:id="cmbClienteFiltro" prefWidth="220"
-                                      promptText="Todos los clientes"/>
-                        </VBox>
-                        <VBox spacing="4">
-                            <Label text=" " styleClass="form-label"/>
-                            <HBox spacing="8">
-                                <Button text="Filtrar"  onAction="#onFiltrar"       styleClass="btn-primary"/>
-                                <Button text="Limpiar"  onAction="#onLimpiarFiltros" styleClass="btn-secondary"/>
-                            </HBox>
-                        </VBox>
-                    </HBox>
-                </VBox>
-
-                <!-- Tabla de facturas -->
                 <VBox styleClass="card" spacing="12" VBox.vgrow="ALWAYS">
-                    <Label text="Historial de Facturas" styleClass="card-title"/>
-                    <TableView fx:id="tablaFacturas" prefHeight="420">
+                    <Label text="Historial de Presupuestos" styleClass="card-title"/>
+                    <TableView fx:id="tablaPresupuestos" prefHeight="460">
                         <columns>
-                            <TableColumn fx:id="colNumero"   text="Nº Factura" prefWidth="120"/>
-                            <TableColumn fx:id="colCliente"  text="Cliente"    prefWidth="160"/>
-                            <TableColumn fx:id="colFecha"    text="Fecha"      prefWidth="100"/>
-                            <TableColumn fx:id="colTotal"    text="Total"      prefWidth="110"/>
-                            <TableColumn fx:id="colEstado"   text="Estado"     prefWidth="90"/>
-                            <TableColumn fx:id="colAcciones" text="Acciones"   prefWidth="220"/>
+                            <TableColumn fx:id="colNumero"   text="Nº Presupuesto" prefWidth="140"/>
+                            <TableColumn fx:id="colCliente"  text="Cliente"         prefWidth="180"/>
+                            <TableColumn fx:id="colFecha"    text="Fecha"           prefWidth="100"/>
+                            <TableColumn fx:id="colTotal"    text="Total"           prefWidth="110"/>
+                            <TableColumn fx:id="colEstado"   text="Estado"          prefWidth="110"/>
+                            <TableColumn fx:id="colAcciones" text="Acciones"        prefWidth="200"/>
                         </columns>
                         <placeholder>
-                            <Label text="No hay facturas. Pulsa '+ Nueva Factura' para crear la primera."
+                            <Label text="No hay presupuestos. Pulsa '+ Nuevo Presupuesto' para crear el primero."
                                    styleClass="table-placeholder"/>
                         </placeholder>
                     </TableView>
@@ -71,22 +43,22 @@
         </ScrollPane>
     </VBox>
 
-    <!-- ===== PANEL NUEVA FACTURA ===== -->
-    <VBox fx:id="panelNuevaFactura" VBox.vgrow="ALWAYS" visible="false" managed="false" spacing="0">
+    <!-- ===== PANEL NUEVO/EDITAR PRESUPUESTO ===== -->
+    <VBox fx:id="panelNuevo" VBox.vgrow="ALWAYS" visible="false" managed="false" spacing="0">
         <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="content-scroll">
             <VBox spacing="20">
                 <padding><Insets top="20" right="24" bottom="24" left="24"/></padding>
 
-                <!-- Datos generales de la factura -->
+                <!-- Datos generales -->
                 <VBox styleClass="card" spacing="16">
-                    <Label fx:id="lblTituloForm" text="Datos de la Factura" styleClass="card-title"/>
+                    <Label fx:id="lblTituloForm" text="Datos del Presupuesto" styleClass="card-title"/>
                     <GridPane hgap="16" vgap="12">
                         <columnConstraints>
                             <ColumnConstraints percentWidth="50"/>
                             <ColumnConstraints percentWidth="50"/>
                         </columnConstraints>
 
-                        <Label text="Nº Factura" styleClass="form-label"
+                        <Label text="Nº Presupuesto" styleClass="form-label"
                                GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                         <TextField fx:id="txtNumero" maxWidth="Infinity"
                                    promptText="Se asignará automáticamente" styleClass="form-input"
@@ -105,7 +77,7 @@
 
                         <Label text="Observaciones" styleClass="form-label"
                                GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-                        <TextArea fx:id="txtObservaciones" promptText="Notas o condiciones de pago..."
+                        <TextArea fx:id="txtObservaciones" promptText="Condiciones, validez, notas..."
                                   prefRowCount="2" maxWidth="Infinity"
                                   GridPane.columnIndex="1" GridPane.rowIndex="3"/>
 
@@ -117,11 +89,10 @@
                     </GridPane>
                 </VBox>
 
-                <!-- Añadir líneas -->
+                <!-- Líneas -->
                 <VBox styleClass="card" spacing="16">
-                    <Label text="Líneas de Factura" styleClass="card-title"/>
+                    <Label text="Líneas del Presupuesto" styleClass="card-title"/>
 
-                    <!-- Fila para añadir línea -->
                     <HBox spacing="12" alignment="BOTTOM_LEFT">
                         <VBox spacing="4" HBox.hgrow="ALWAYS">
                             <Label text="Producto" styleClass="form-label"/>
@@ -142,15 +113,14 @@
                         </VBox>
                     </HBox>
 
-                    <!-- Tabla de líneas -->
                     <TableView fx:id="tablaLineas" prefHeight="220">
                         <columns>
-                            <TableColumn fx:id="colLinProducto"  text="Producto"   prefWidth="200"/>
-                            <TableColumn fx:id="colLinCantidad"  text="Cant."      prefWidth="60"/>
-                            <TableColumn fx:id="colLinPrecio"    text="Precio"     prefWidth="100"/>
-                            <TableColumn fx:id="colLinDescuento" text="Dto."       prefWidth="70"/>
-                            <TableColumn fx:id="colLinTotal"     text="Total"      prefWidth="110"/>
-                            <TableColumn fx:id="colLinAccion"    text=""           prefWidth="55"/>
+                            <TableColumn fx:id="colLinProducto"  text="Producto"  prefWidth="200"/>
+                            <TableColumn fx:id="colLinCantidad"  text="Cant."     prefWidth="60"/>
+                            <TableColumn fx:id="colLinPrecio"    text="Precio"    prefWidth="100"/>
+                            <TableColumn fx:id="colLinDescuento" text="Dto."      prefWidth="70"/>
+                            <TableColumn fx:id="colLinTotal"     text="Total"     prefWidth="110"/>
+                            <TableColumn fx:id="colLinAccion"    text=""          prefWidth="55"/>
                         </columns>
                         <placeholder>
                             <Label text="Añade productos usando el formulario superior."
@@ -158,20 +128,17 @@
                         </placeholder>
                     </TableView>
 
-                    <!-- Totales -->
                     <HBox alignment="CENTER_RIGHT" spacing="0">
                         <GridPane styleClass="totales-grid" hgap="20" vgap="6">
                             <Label text="Base imponible:" styleClass="total-label"
                                    GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                             <Label fx:id="lblSubtotal" text="0,00 €" styleClass="total-value"
                                    GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-
                             <Label text="IVA total:" styleClass="total-label"
                                    GridPane.columnIndex="0" GridPane.rowIndex="1"/>
                             <Label fx:id="lblIva" text="0,00 €" styleClass="total-value"
                                    GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-
-                            <Label text="TOTAL FACTURA:" styleClass="total-label-big"
+                            <Label text="TOTAL PRESUPUESTO:" styleClass="total-label-big"
                                    GridPane.columnIndex="0" GridPane.rowIndex="2"/>
                             <Label fx:id="lblTotal" text="0,00 €" styleClass="total-value-big"
                                    GridPane.columnIndex="1" GridPane.rowIndex="2"/>
@@ -179,10 +146,9 @@
                     </HBox>
                 </VBox>
 
-                <!-- Botones acción final -->
                 <HBox spacing="12" alignment="CENTER_RIGHT">
-                    <Button text="Cancelar" onAction="#onCancelarFactura" styleClass="btn-secondary"/>
-                    <Button text="💾 Guardar Factura" onAction="#onGuardarFactura" styleClass="btn-primary"/>
+                    <Button text="Cancelar" onAction="#onCancelar" styleClass="btn-secondary"/>
+                    <Button text="💾 Guardar Presupuesto" onAction="#onGuardar" styleClass="btn-primary"/>
                 </HBox>
             </VBox>
         </ScrollPane>

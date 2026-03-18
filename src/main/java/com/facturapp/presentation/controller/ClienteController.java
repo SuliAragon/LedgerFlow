@@ -198,11 +198,11 @@ public class ClienteController implements Initializable {
     }
 
     private void setFormularioEditable(boolean editable) {
-        txtNombre.setEditable(editable);
-        txtNifCif.setEditable(editable);
-        txtEmail.setEditable(editable);
-        txtTelefono.setEditable(editable);
-        txtDireccion.setEditable(editable);
+        txtNombre.setDisable(!editable);
+        txtNifCif.setDisable(!editable);
+        txtEmail.setDisable(!editable);
+        txtTelefono.setDisable(!editable);
+        txtDireccion.setDisable(!editable);
     }
 
     private void limpiarFormulario() {

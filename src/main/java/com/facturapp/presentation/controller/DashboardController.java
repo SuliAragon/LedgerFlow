@@ -48,6 +48,7 @@ public class DashboardController implements Initializable {
     @FXML private Button btnClientes;
     @FXML private Button btnProductos;
     @FXML private Button btnFacturas;
+    @FXML private Button btnPresupuestos;
     @FXML private Button btnLogos;
     @FXML private Button btnMiEmpresa;
     @FXML private Button btnUsuarios;
@@ -121,6 +122,12 @@ public class DashboardController implements Initializable {
     }
 
     @FXML
+    private void mostrarPresupuestos() {
+        cargarVista("/com/facturapp/fxml/presupuesto.fxml");
+        resaltarBoton(btnPresupuestos);
+    }
+
+    @FXML
     private void mostrarLogos() {
         cargarVista("/com/facturapp/fxml/logo.fxml");
         resaltarBoton(btnLogos);
@@ -184,7 +191,7 @@ public class DashboardController implements Initializable {
 
     /** Aplica la clase CSS 'activo' al botón seleccionado */
     private void resaltarBoton(Button botonActivo) {
-        Button[] botones = {btnDashboard, btnClientes, btnProductos, btnFacturas, btnLogos, btnMiEmpresa, btnUsuarios};
+        Button[] botones = {btnDashboard, btnClientes, btnProductos, btnFacturas, btnPresupuestos, btnLogos, btnMiEmpresa, btnUsuarios};
         for (Button btn : botones) {
             if (btn != null) btn.getStyleClass().remove("nav-btn-activo");
         }

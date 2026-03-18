@@ -48,6 +48,8 @@ public class FacturaController implements Initializable {
     // --- Panel nueva/editar factura ---
     @FXML private VBox panelNuevaFactura;
     @FXML private Label lblTituloForm;
+    @FXML private TextField txtNumero;
+    @FXML private DatePicker dpFechaEmision;
     @FXML private ComboBox<Cliente> cmbCliente;
     @FXML private ComboBox<EmpresaConfig> cmbEmpresa;
     @FXML private TextArea txtObservaciones;
@@ -324,6 +326,9 @@ public class FacturaController implements Initializable {
     private void onNuevaFactura() {
         facturaEditando = null;
         lblTituloForm.setText("Datos de la Factura");
+        txtNumero.clear();
+        txtNumero.setDisable(true);
+        dpFechaEmision.setValue(LocalDate.now());
         lineasActuales.clear();
         cmbCliente.setValue(null);
         cmbEmpresa.setValue(null);
@@ -338,6 +343,10 @@ public class FacturaController implements Initializable {
     private void editarFactura(Factura factura) {
         facturaEditando = factura;
         lblTituloForm.setText("Editar Factura: " + factura.getNumero());
+
+        txtNumero.setText(factura.getNumero());
+        txtNumero.setDisable(false);
+        dpFechaEmision.setValue(factura.getFechaEmision());
 
         cmbCliente.setValue(factura.getCliente());
 
@@ -415,10 +424,13 @@ public class FacturaController implements Initializable {
 
             if (facturaEditando == null) {
                 // Crear nueva factura
+                LocalDate fecha = dpFechaEmision.getValue() != null ? dpFechaEmision.getValue() : LocalDate.now();
+                List<LineaFactura> lineasNuevas = new ArrayList<>(lineasActuales);
                 Factura nueva = facturaUseCase.crearFactura(
                     cmbCliente.getValue().getId(),
                     empresaId,
-                    new ArrayList<>(lineasActuales),
+                    fecha,
+                    lineasNuevas,
                     txtObservaciones.getText().trim()
                 );
                 AlertUtil.mostrarExito("Factura creada",
@@ -429,6 +441,9 @@ public class FacturaController implements Initializable {
                 if (generarPdf) generarPdf(nueva);
             } else {
                 // Actualizar factura existente
+                String numEditado = txtNumero.getText().trim();
+                if (!numEditado.isEmpty()) facturaEditando.setNumero(numEditado);
+                if (dpFechaEmision.getValue() != null) facturaEditando.setFechaEmision(dpFechaEmision.getValue());
                 facturaEditando.setCliente(cmbCliente.getValue());
                 facturaEditando.setEmpresaId(empresaId);
                 facturaEditando.setObservaciones(txtObservaciones.getText().trim());

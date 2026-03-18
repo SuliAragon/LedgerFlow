@@ -228,9 +228,9 @@ public class ProductoController implements Initializable {
     }
 
     private void setFormularioEditable(boolean editable) {
-        txtNombre.setEditable(editable);
-        txtDescripcion.setEditable(editable);
-        txtPrecio.setEditable(editable);
+        txtNombre.setDisable(!editable);
+        txtDescripcion.setDisable(!editable);
+        txtPrecio.setDisable(!editable);
         cmbIva.setDisable(!editable);
     }
 

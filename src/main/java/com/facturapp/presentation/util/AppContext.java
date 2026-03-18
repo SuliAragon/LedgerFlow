@@ -17,6 +17,7 @@ public class AppContext {
     private final H2ClienteRepository       clienteRepository;
     private final H2ProductoRepository      productoRepository;
     private final H2FacturaRepository       facturaRepository;
+    private final H2PresupuestoRepository   presupuestoRepository;
     private final H2EmpresaLogoRepository   logoRepository;
     private final H2EmpresaConfigRepository configRepository;
 
@@ -25,16 +26,18 @@ public class AppContext {
     private final ClienteUseCase       clienteUseCase;
     private final ProductoUseCase      productoUseCase;
     private final FacturaUseCase       facturaUseCase;
+    private final PresupuestoUseCase   presupuestoUseCase;
     private final LogoUseCase          logoUseCase;
     private final EmpresaConfigUseCase empresaConfigUseCase;
 
     private AppContext() {
-        usuarioRepository  = new H2UsuarioRepository();
-        clienteRepository  = new H2ClienteRepository();
-        productoRepository = new H2ProductoRepository();
-        facturaRepository  = new H2FacturaRepository(clienteRepository, productoRepository);
-        logoRepository     = new H2EmpresaLogoRepository();
-        configRepository   = new H2EmpresaConfigRepository();
+        usuarioRepository    = new H2UsuarioRepository();
+        clienteRepository    = new H2ClienteRepository();
+        productoRepository   = new H2ProductoRepository();
+        facturaRepository    = new H2FacturaRepository(clienteRepository, productoRepository);
+        presupuestoRepository = new H2PresupuestoRepository(clienteRepository, productoRepository);
+        logoRepository       = new H2EmpresaLogoRepository();
+        configRepository     = new H2EmpresaConfigRepository();
 
         PdfFacturaGenerator pdfGenerator = new PdfFacturaGenerator(logoRepository, configRepository);
 
@@ -43,6 +46,7 @@ public class AppContext {
         productoUseCase      = new ProductoUseCase(productoRepository);
         facturaUseCase       = new FacturaUseCase(facturaRepository, clienteRepository,
                                                    productoRepository, pdfGenerator);
+        presupuestoUseCase   = new PresupuestoUseCase(presupuestoRepository, clienteRepository, pdfGenerator);
         logoUseCase          = new LogoUseCase(logoRepository);
         empresaConfigUseCase = new EmpresaConfigUseCase(configRepository);
     }
@@ -56,6 +60,7 @@ public class AppContext {
     public ClienteUseCase       getClienteUseCase()       { return clienteUseCase; }
     public ProductoUseCase      getProductoUseCase()      { return productoUseCase; }
     public FacturaUseCase       getFacturaUseCase()       { return facturaUseCase; }
+    public PresupuestoUseCase   getPresupuestoUseCase()   { return presupuestoUseCase; }
     public LogoUseCase          getLogoUseCase()          { return logoUseCase; }
     public EmpresaConfigUseCase getEmpresaConfigUseCase() { return empresaConfigUseCase; }
 }

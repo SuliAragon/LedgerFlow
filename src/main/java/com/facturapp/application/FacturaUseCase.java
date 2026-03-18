@@ -46,7 +46,8 @@ public class FacturaUseCase {
      * @param lineas     Líneas de la factura a añadir
      * @param observaciones Texto libre opcional
      */
-    public Factura crearFactura(Long clienteId, Long empresaId, List<LineaFactura> lineas, String observaciones) {
+    public Factura crearFactura(Long clienteId, Long empresaId, LocalDate fechaEmision,
+                                List<LineaFactura> lineas, String observaciones) {
         if (lineas == null || lineas.isEmpty()) {
             throw new IllegalArgumentException("La factura debe tener al menos una línea.");
         }
@@ -57,7 +58,7 @@ public class FacturaUseCase {
         Factura factura = new Factura();
         factura.setNumero(facturaRepository.generarNumeroFactura());
         factura.setCliente(cliente);
-        factura.setFechaEmision(LocalDate.now());
+        factura.setFechaEmision(fechaEmision != null ? fechaEmision : LocalDate.now());
         factura.setEstado(Factura.Estado.EMITIDA);
         factura.setObservaciones(observaciones);
         factura.setEmpresaId(empresaId);

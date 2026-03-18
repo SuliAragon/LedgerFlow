@@ -40,6 +40,10 @@
                     onAction="#mostrarFacturas"
                     styleClass="nav-btn" maxWidth="Infinity"/>
 
+            <Button fx:id="btnPresupuestos" text="📋  Presupuestos"
+                    onAction="#mostrarPresupuestos"
+                    styleClass="nav-btn" maxWidth="Infinity"/>
+
             <Button fx:id="btnLogos" text="🖼  Logos Empresa"
                     onAction="#mostrarLogos"
                     styleClass="nav-btn" maxWidth="Infinity"/>
