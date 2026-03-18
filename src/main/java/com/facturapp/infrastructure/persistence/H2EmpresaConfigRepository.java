@@ -83,10 +83,23 @@ public class H2EmpresaConfigRepository {
     }
 
     public void eliminar(Long id) {
-        String sql = "DELETE FROM empresa_config WHERE id = ?";
-        try (PreparedStatement ps = getConn().prepareStatement(sql)) {
-            ps.setLong(1, id);
-            ps.executeUpdate();
+        try (Connection conn = getConn()) {
+            // Desvincula facturas y presupuestos que referencian esta empresa
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE facturas SET empresa_id = NULL WHERE empresa_id = ?")) {
+                ps.setLong(1, id);
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE presupuestos SET empresa_id = NULL WHERE empresa_id = ?")) {
+                ps.setLong(1, id);
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM empresa_config WHERE id = ?")) {
+                ps.setLong(1, id);
+                ps.executeUpdate();
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Error eliminando empresa", e);
         }
