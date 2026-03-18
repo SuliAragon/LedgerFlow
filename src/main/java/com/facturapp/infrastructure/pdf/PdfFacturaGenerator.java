@@ -278,7 +278,7 @@ public class PdfFacturaGenerator {
 
     private void seccionPie(Document doc) {
         doc.add(new LineSeparator(new SolidLine()).setMarginTop(20).setMarginBottom(8));
-        doc.add(new Paragraph("Documento generado con FacturApp")
+        doc.add(new Paragraph("Documento generado con LedgerFlow")
             .setFontSize(8).setFontColor(SECUNDARIO).setTextAlignment(TextAlignment.CENTER));
     }
 

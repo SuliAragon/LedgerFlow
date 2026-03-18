@@ -13,6 +13,7 @@ jobs:
   build-mac:
     name: Build macOS DMG
     runs-on: macos-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -78,11 +79,12 @@ jobs:
           retention-days: 30
 
   # ─────────────────────────────────────────────
-  #  Windows → .exe
+  #  Windows → .msi
   # ─────────────────────────────────────────────
   build-windows:
-    name: Build Windows EXE
+    name: Build Windows MSI
     runs-on: windows-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -119,12 +121,12 @@ jobs:
             cp "$M2/$MODULE/$JFX_VER/$MODULE-$JFX_VER-$JFX_PLATFORM.jar" target/dist-win/
           done
 
-      - name: Create EXE with jpackage
+      - name: Create MSI with jpackage
         shell: cmd
         run: |
           mkdir target\installer
           jpackage ^
-            --type exe ^
+            --type msi ^
             --input target\dist-win ^
             --main-jar facturapp-1.0.0.jar ^
             --main-class com.facturapp.FacturApp ^
@@ -140,9 +142,9 @@ jobs:
             --win-menu-group "LedgerFlow" ^
             --dest target\installer
 
-      - name: Upload EXE artifact
+      - name: Upload MSI artifact
         uses: actions/upload-artifact@v4
         with:
           name: LedgerFlow-Windows
-          path: target/installer/*.exe
+          path: target/installer/*.msi
           retention-days: 30
