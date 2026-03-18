@@ -16,6 +16,7 @@ import com.itextpdf.layout.borders.SolidBorder;
 import com.itextpdf.layout.element.*;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
+import com.itextpdf.layout.properties.VerticalAlignment;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,20 +33,21 @@ import java.util.logging.Logger;
 
 /**
  * Genera facturas y presupuestos en PDF con iText 8.
- * Comparte el mismo layout; sólo cambia el título del documento.
+ * Diseño moderno, compacto y elegante.
  */
 public class PdfFacturaGenerator {
 
     private static final Logger log = Logger.getLogger(PdfFacturaGenerator.class.getName());
 
-    private static final DeviceRgb PRIMARIO   = new DeviceRgb(30, 41, 59);
-    private static final DeviceRgb SECUNDARIO = new DeviceRgb(100, 116, 139);
-    private static final DeviceRgb ACENTO     = new DeviceRgb(59, 130, 246);
-    private static final DeviceRgb FONDO_FILA = new DeviceRgb(248, 250, 252);
-    private static final DeviceRgb BORDE      = new DeviceRgb(226, 232, 240);
-    private static final DeviceRgb BLANCO     = new DeviceRgb(255, 255, 255);
+    // Paleta de colores
+    private static final DeviceRgb AZUL_OSCURO  = new DeviceRgb(30,  41,  59);   // encabezados
+    private static final DeviceRgb AZUL_MEDIO   = new DeviceRgb(59,  130, 246);  // acento
+    private static final DeviceRgb GRIS_TEXTO   = new DeviceRgb(71,  85,  105);  // texto secundario
+    private static final DeviceRgb GRIS_CLARO   = new DeviceRgb(248, 250, 252);  // fila alternada
+    private static final DeviceRgb BORDE_SUAVE  = new DeviceRgb(226, 232, 240);  // bordes tabla
+    private static final DeviceRgb BLANCO       = new DeviceRgb(255, 255, 255);
 
-    private static final DateTimeFormatter FMT_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final EmpresaLogoRepository     logoRepo;
     private final H2EmpresaConfigRepository configRepo;
@@ -58,69 +60,47 @@ public class PdfFacturaGenerator {
 
     // ── PÚBLICOS ─────────────────────────────────────────────────────────────
 
-    public Path generar(Factura factura) {
-        EmpresaConfig config = (factura.getEmpresaId() != null)
-            ? configRepo.findById(factura.getEmpresaId()).orElse(new EmpresaConfig())
+    public Path generar(Factura f) {
+        EmpresaConfig cfg = f.getEmpresaId() != null
+            ? configRepo.findById(f.getEmpresaId()).orElse(new EmpresaConfig())
             : new EmpresaConfig();
-        Optional<EmpresaLogo> logo = logoRepo.findActivo();
-
-        Path destino = destino(factura.getNumero());
-        generarDocumento(
-            "FACTURA",
-            factura.getNumero(),
-            factura.getFechaEmision(),
-            factura.getEstado().getEtiqueta(),
-            factura.getEmpresaId(),
-            factura.getCliente(),
-            factura.getLineas(),
-            factura.getSubtotal(), factura.getTotalIva(), factura.getTotal(),
-            factura.getObservaciones(),
-            config, logo.orElse(null), destino
-        );
-        return destino;
+        generarDocumento("FACTURA", f.getNumero(), f.getFechaEmision(),
+            f.getEstado().getEtiqueta(), f.getCliente(), f.getLineas(),
+            f.getSubtotal(), f.getTotalIva(), f.getTotal(), f.getObservaciones(),
+            cfg, logoRepo.findActivo().orElse(null), destino(f.getNumero()));
+        return destino(f.getNumero());
     }
 
-    public Path generarPresupuesto(Presupuesto presupuesto) {
-        EmpresaConfig config = (presupuesto.getEmpresaId() != null)
-            ? configRepo.findById(presupuesto.getEmpresaId()).orElse(new EmpresaConfig())
+    public Path generarPresupuesto(Presupuesto p) {
+        EmpresaConfig cfg = p.getEmpresaId() != null
+            ? configRepo.findById(p.getEmpresaId()).orElse(new EmpresaConfig())
             : new EmpresaConfig();
-        Optional<EmpresaLogo> logo = logoRepo.findActivo();
-
-        Path destino = destino(presupuesto.getNumero());
-        generarDocumento(
-            "PRESUPUESTO",
-            presupuesto.getNumero(),
-            presupuesto.getFechaEmision(),
-            presupuesto.getEstado().getEtiqueta(),
-            presupuesto.getEmpresaId(),
-            presupuesto.getCliente(),
-            presupuesto.getLineas(),
-            presupuesto.getSubtotal(), presupuesto.getTotalIva(), presupuesto.getTotal(),
-            presupuesto.getObservaciones(),
-            config, logo.orElse(null), destino
-        );
-        return destino;
+        generarDocumento("PRESUPUESTO", p.getNumero(), p.getFechaEmision(),
+            p.getEstado().getEtiqueta(), p.getCliente(), p.getLineas(),
+            p.getSubtotal(), p.getTotalIva(), p.getTotal(), p.getObservaciones(),
+            cfg, logoRepo.findActivo().orElse(null), destino(p.getNumero()));
+        return destino(p.getNumero());
     }
 
     // ── CORE ─────────────────────────────────────────────────────────────────
 
-    private void generarDocumento(String tipoLabel, String numero, LocalDate fecha,
-                                   String estadoLabel, Long empresaId,
+    private void generarDocumento(String tipo, String numero, LocalDate fecha, String estadoLabel,
                                    Cliente cliente, List<LineaFactura> lineas,
                                    BigDecimal subtotal, BigDecimal totalIva, BigDecimal total,
-                                   String observaciones, EmpresaConfig config,
+                                   String observaciones, EmpresaConfig cfg,
                                    EmpresaLogo logo, Path destino) {
         try {
             Files.createDirectories(destino.getParent());
             Document doc = new Document(new PdfDocument(new PdfWriter(destino.toFile())), PageSize.A4);
-            doc.setMargins(40, 40, 40, 40);
+            doc.setMargins(36, 44, 36, 44);
 
-            seccionCabecera(doc, tipoLabel, numero, fecha, estadoLabel, config, logo);
-            seccionEmisor(doc, config);
-            seccionCliente(doc, cliente);
-            seccionLineas(doc, lineas);
-            seccionTotales(doc, subtotal, totalIva, total, config, observaciones);
-            seccionPie(doc);
+            cabecera(doc, tipo, numero, fecha, estadoLabel, cfg, logo);
+            separador(doc, 8, 10);
+            bloqueEmisorCliente(doc, cfg, cliente);
+            separador(doc, 6, 10);
+            tablaLineas(doc, lineas);
+            totalesYNotas(doc, subtotal, totalIva, total, cfg, observaciones);
+            pie(doc);
 
             doc.close();
             log.info("PDF → " + destino);
@@ -135,176 +115,219 @@ public class PdfFacturaGenerator {
             numero.replace("/", "-") + ".pdf");
     }
 
-    // ── SECCIONES ────────────────────────────────────────────────────────────
+    // ── CABECERA ─────────────────────────────────────────────────────────────
 
-    private void seccionCabecera(Document doc, String tipoLabel, String numero,
-                                  LocalDate fecha, String estadoLabel,
-                                  EmpresaConfig config, EmpresaLogo logo) {
-        Table tbl = new Table(UnitValue.createPercentArray(new float[]{55, 45}))
+    private void cabecera(Document doc, String tipo, String numero, LocalDate fecha,
+                           String estadoLabel, EmpresaConfig cfg, EmpresaLogo logo) {
+        Table t = new Table(UnitValue.createPercentArray(new float[]{55, 45}))
             .setWidth(UnitValue.createPercentValue(100)).setBorder(Border.NO_BORDER);
 
-        Cell izq = new Cell().setBorder(Border.NO_BORDER);
-        boolean logoMostrado = false;
+        // Izquierda: logo o nombre empresa
+        Cell izq = new Cell().setBorder(Border.NO_BORDER).setVerticalAlignment(VerticalAlignment.MIDDLE);
+        boolean logoOk = false;
         if (logo != null && logo.getRutaArchivo() != null) {
             try {
-                File f = new File(logo.getRutaArchivo());
-                if (f.exists()) {
+                if (new File(logo.getRutaArchivo()).exists()) {
                     Image img = new Image(ImageDataFactory.create(logo.getRutaArchivo()));
-                    img.setMaxWidth(170).setAutoScaleHeight(true);
+                    img.setMaxWidth(130).setAutoScaleHeight(true);
                     izq.add(img);
-                    logoMostrado = true;
+                    logoOk = true;
                 }
-            } catch (Exception e) {
-                log.warning("Logo no cargado: " + e.getMessage());
+            } catch (Exception e) { log.warning("Logo no cargado: " + e.getMessage()); }
+        }
+        if (!logoOk) {
+            String nombre = cfg != null && cfg.tieneNombreEmpresa() ? cfg.getNombreEmpresa() : "LedgerFlow";
+            izq.add(par(nombre, 18, AZUL_OSCURO).setBold());
+        }
+
+        // Derecha: tipo + número + metadatos
+        Cell der = new Cell().setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT)
+            .setVerticalAlignment(VerticalAlignment.MIDDLE);
+        der.add(par(tipo, 20, AZUL_MEDIO).setBold().setMarginBottom(2));
+        der.add(par(numero, 11, AZUL_OSCURO).setBold().setMarginBottom(1));
+        if (fecha != null) der.add(par("Fecha: " + fecha.format(FMT), 8, GRIS_TEXTO));
+        der.add(par("Estado: " + estadoLabel, 8, GRIS_TEXTO));
+
+        t.addCell(izq);
+        t.addCell(der);
+        doc.add(t);
+    }
+
+    // ── BLOQUE EMISOR + CLIENTE ───────────────────────────────────────────────
+
+    private void bloqueEmisorCliente(Document doc, EmpresaConfig c, Cliente cl) {
+        Table t = new Table(UnitValue.createPercentArray(new float[]{48, 4, 48}))
+            .setWidth(UnitValue.createPercentValue(100)).setBorder(Border.NO_BORDER);
+
+        // Emisor
+        Cell emisor = new Cell().setBorder(Border.NO_BORDER);
+        boolean hayEmisor = c != null && (ok(c.getNombreEmpresa()) || ok(c.getNif()));
+        if (hayEmisor) {
+            emisor.add(etiquetaSeccion("DATOS DEL EMISOR"));
+            if (ok(c.getNombreEmpresa())) emisor.add(par(c.getNombreEmpresa(), 9, AZUL_OSCURO).setBold());
+            if (ok(c.getNif()))           emisor.add(par("NIF: " + c.getNif(), 8, GRIS_TEXTO));
+            String dir = c.getDireccionCompleta();
+            if (ok(dir)) emisor.add(par(dir, 8, GRIS_TEXTO));
+            if (ok(c.getTelefono())) emisor.add(par(c.getTelefono(), 8, GRIS_TEXTO));
+            if (ok(c.getEmail()))    emisor.add(par(c.getEmail(), 8, GRIS_TEXTO));
+            if (ok(c.getWeb()))      emisor.add(par(c.getWeb(), 8, GRIS_TEXTO));
+            if (ok(c.getNombreEmisor())) {
+                String e = c.getNombreEmisor() + (ok(c.getCargo()) ? " · " + c.getCargo() : "");
+                emisor.add(par(e, 8, GRIS_TEXTO));
             }
         }
-        String nombre = (config != null && config.tieneNombreEmpresa())
-            ? config.getNombreEmpresa() : "FacturApp";
-        if (!logoMostrado) {
-            izq.add(new Paragraph(nombre).setFontSize(22).setBold().setFontColor(PRIMARIO));
+
+        // Separador central (vacío)
+        Cell sep = new Cell().setBorder(Border.NO_BORDER);
+
+        // Cliente
+        Cell cliente = new Cell().setBorder(Border.NO_BORDER);
+        if (cl != null) {
+            cliente.add(etiquetaSeccion("FACTURAR A"));
+            cliente.add(par(cl.getNombre(), 9, AZUL_OSCURO).setBold());
+            cliente.add(par("NIF/CIF: " + cl.getNifCif(), 8, GRIS_TEXTO));
+            if (ok(cl.getDireccion())) cliente.add(par(cl.getDireccion(), 8, GRIS_TEXTO));
+            if (ok(cl.getEmail()))     cliente.add(par(cl.getEmail(), 8, GRIS_TEXTO));
+            if (ok(cl.getTelefono()))  cliente.add(par(cl.getTelefono(), 8, GRIS_TEXTO));
         }
 
-        Cell der = new Cell().setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT);
-        der.add(new Paragraph(tipoLabel).setFontSize(24).setBold().setFontColor(ACENTO));
-        der.add(new Paragraph(numero).setFontSize(15).setBold().setFontColor(PRIMARIO));
-        if (fecha != null)
-            der.add(par("Fecha: " + fecha.format(FMT_FECHA), 10, SECUNDARIO));
-        der.add(par("Estado: " + estadoLabel, 10, SECUNDARIO));
-
-        tbl.addCell(izq);
-        tbl.addCell(der);
-        doc.add(tbl);
-        doc.add(new LineSeparator(new SolidLine()).setMarginTop(12).setMarginBottom(14));
+        t.addCell(emisor);
+        t.addCell(sep);
+        t.addCell(cliente);
+        doc.add(t);
     }
 
-    private void seccionEmisor(Document doc, EmpresaConfig c) {
-        if (c == null) return;
-        boolean tieneAlgo = c.getNombreEmpresa() != null || c.getNif() != null
-            || c.getTelefono() != null || c.getEmail() != null
-            || c.getDireccion() != null || c.getNombreEmisor() != null;
-        if (!tieneAlgo) return;
+    // ── TABLA DE LÍNEAS ──────────────────────────────────────────────────────
 
-        Table tbl = new Table(UnitValue.createPercentArray(new float[]{50, 50}))
-            .setWidth(UnitValue.createPercentValue(100)).setBorder(Border.NO_BORDER)
-            .setMarginBottom(8);
+    private void tablaLineas(Document doc, List<LineaFactura> lineas) {
+        Table t = new Table(UnitValue.createPercentArray(new float[]{38, 8, 14, 9, 9, 14, 8}))
+            .setWidth(UnitValue.createPercentValue(100)).setMarginBottom(4);
 
-        Cell emisor = new Cell().setBorder(Border.NO_BORDER);
-        emisor.add(par("DATOS DEL EMISOR", 8, SECUNDARIO).setBold());
-        if (ok(c.getNombreEmpresa())) emisor.add(par(c.getNombreEmpresa(), 11, PRIMARIO).setBold());
-        if (ok(c.getNif()))           emisor.add(par("NIF/CIF: " + c.getNif(), 10, PRIMARIO));
-        String dir = c.getDireccionCompleta();
-        if (ok(dir)) emisor.add(par(dir, 10, PRIMARIO));
-        if (ok(c.getTelefono())) emisor.add(par("Tel: " + c.getTelefono(), 10, SECUNDARIO));
-        if (ok(c.getEmail()))    emisor.add(par(c.getEmail(), 10, SECUNDARIO));
-        if (ok(c.getWeb()))      emisor.add(par(c.getWeb(), 10, SECUNDARIO));
-        if (ok(c.getNombreEmisor())) {
-            String emisorTxt = c.getNombreEmisor();
-            if (ok(c.getCargo())) emisorTxt += " · " + c.getCargo();
-            emisor.add(par(emisorTxt, 10, SECUNDARIO));
+        // Cabecera
+        String[] cols = {"Descripción", "Cant.", "P. Unit.", "Dto.%", "IVA%", "Total", ""};
+        for (int i = 0; i < cols.length; i++) {
+            boolean esAccion = i == cols.length - 1;
+            t.addHeaderCell(new Cell()
+                .add(new Paragraph(cols[i]).setFontSize(7.5f).setBold()
+                    .setFontColor(ColorConstants.WHITE)
+                    .setTextAlignment(i == 0 ? TextAlignment.LEFT : TextAlignment.CENTER))
+                .setBackgroundColor(AZUL_OSCURO)
+                .setPaddingTop(5).setPaddingBottom(5)
+                .setPaddingLeft(i == 0 ? 6 : 3).setPaddingRight(3)
+                .setBorder(Border.NO_BORDER));
         }
 
-        tbl.addCell(emisor);
-        tbl.addCell(new Cell().setBorder(Border.NO_BORDER));
-        doc.add(tbl);
-    }
-
-    private void seccionCliente(Document doc, Cliente c) {
-        if (c == null) return;
-        doc.add(par("FACTURAR A:", 9, SECUNDARIO).setBold().setMarginBottom(4));
-        doc.add(par(c.getNombre(), 13, PRIMARIO).setBold().setMarginBottom(2));
-        doc.add(par("NIF/CIF: " + c.getNifCif(), 10, PRIMARIO).setMarginBottom(2));
-        if (ok(c.getDireccion())) doc.add(par(c.getDireccion(), 10, PRIMARIO).setMarginBottom(2));
-        if (ok(c.getEmail()))     doc.add(par(c.getEmail(), 10, SECUNDARIO).setMarginBottom(2));
-        if (ok(c.getTelefono()))  doc.add(par(c.getTelefono(), 10, SECUNDARIO));
-        doc.add(new Paragraph("\n"));
-    }
-
-    private void seccionLineas(Document doc, List<LineaFactura> lineas) {
-        Table tbl = new Table(UnitValue.createPercentArray(new float[]{38, 10, 15, 10, 12, 15}))
-            .setWidth(UnitValue.createPercentValue(100));
-
-        for (String cab : new String[]{"Descripción", "Cant.", "Precio Unit.", "Dto.%", "IVA%", "Total"})
-            tbl.addHeaderCell(new Cell()
-                .add(new Paragraph(cab).setFontSize(10).setBold().setFontColor(ColorConstants.WHITE)
-                    .setTextAlignment(TextAlignment.CENTER))
-                .setBackgroundColor(PRIMARIO).setPadding(8).setBorder(Border.NO_BORDER));
-
+        // Filas
         boolean alt = false;
         for (LineaFactura l : lineas) {
-            DeviceRgb bg = alt ? FONDO_FILA : BLANCO; alt = !alt;
+            DeviceRgb bg = alt ? GRIS_CLARO : BLANCO;
+            alt = !alt;
+            int iva = l.getProducto() != null ? l.getProducto().getPorcentajeIva() : 0;
             String prod = l.getProducto() != null ? l.getProducto().getNombre() : "-";
-            int iva     = l.getProducto() != null ? l.getProducto().getPorcentajeIva() : 0;
-            tbl.addCell(celda(prod,                             TextAlignment.LEFT,   bg));
-            tbl.addCell(celda(String.valueOf(l.getCantidad()),  TextAlignment.CENTER, bg));
-            tbl.addCell(celda(eur(l.getPrecioUnitario()),       TextAlignment.RIGHT,  bg));
-            tbl.addCell(celda(l.getDescuento() + "%",          TextAlignment.CENTER, bg));
-            tbl.addCell(celda(iva + "%",                        TextAlignment.CENTER, bg));
-            tbl.addCell(celda(eur(l.getTotalLinea()),           TextAlignment.RIGHT,  bg));
+
+            t.addCell(celdaFila(prod,                             TextAlignment.LEFT,   bg, true));
+            t.addCell(celdaFila(String.valueOf(l.getCantidad()),  TextAlignment.CENTER, bg, false));
+            t.addCell(celdaFila(eur(l.getPrecioUnitario()),       TextAlignment.RIGHT,  bg, false));
+            t.addCell(celdaFila(l.getDescuento() + "%",          TextAlignment.CENTER, bg, false));
+            t.addCell(celdaFila(iva + "%",                        TextAlignment.CENTER, bg, false));
+            t.addCell(celdaFila(eur(l.getTotalLinea()),           TextAlignment.RIGHT,  bg, false));
+            t.addCell(celdaFila("",                               TextAlignment.CENTER, bg, false));
         }
-        doc.add(tbl);
+
+        doc.add(t);
     }
 
-    private void seccionTotales(Document doc, BigDecimal subtotal, BigDecimal totalIva,
-                                 BigDecimal total, EmpresaConfig config, String observaciones) {
-        Table wrap = new Table(UnitValue.createPercentArray(new float[]{55, 45}))
-            .setWidth(UnitValue.createPercentValue(100)).setBorder(Border.NO_BORDER).setMarginTop(12);
-        wrap.addCell(new Cell().setBorder(Border.NO_BORDER));
+    // ── TOTALES Y NOTAS ──────────────────────────────────────────────────────
 
-        Table tot = new Table(UnitValue.createPercentArray(new float[]{60, 40}))
-            .setWidth(UnitValue.createPercentValue(100));
-        filaTotal(tot, "Base imponible", eur(subtotal));
-        filaTotal(tot, "IVA total",       eur(totalIva));
-        tot.addCell(new Cell().add(new Paragraph("TOTAL").setFontSize(13).setBold()
-            .setFontColor(ColorConstants.WHITE)).setBackgroundColor(PRIMARIO)
-            .setPadding(10).setBorder(Border.NO_BORDER));
-        tot.addCell(new Cell().add(new Paragraph(eur(total)).setFontSize(13).setBold()
-            .setFontColor(ColorConstants.WHITE).setTextAlignment(TextAlignment.RIGHT))
-            .setBackgroundColor(PRIMARIO).setPadding(10).setBorder(Border.NO_BORDER));
-        wrap.addCell(new Cell().setBorder(Border.NO_BORDER).add(tot));
-        doc.add(wrap);
+    private void totalesYNotas(Document doc, BigDecimal subtotal, BigDecimal totalIva,
+                                BigDecimal total, EmpresaConfig cfg, String observaciones) {
+        // Layout: notas a la izquierda, totales a la derecha
+        Table wrap = new Table(UnitValue.createPercentArray(new float[]{52, 4, 44}))
+            .setWidth(UnitValue.createPercentValue(100)).setBorder(Border.NO_BORDER).setMarginTop(8);
 
-        if (config != null && ok(config.getCuentaBancaria())) {
-            doc.add(par("\nForma de pago — Transferencia bancaria: " + config.getCuentaBancaria(),
-                9, SECUNDARIO));
+        // Columna izquierda: notas
+        Cell notas = new Cell().setBorder(Border.NO_BORDER).setPaddingTop(4);
+        if (cfg != null && ok(cfg.getCuentaBancaria())) {
+            notas.add(par("Forma de pago", 7, GRIS_TEXTO).setBold());
+            notas.add(par("Transferencia bancaria", 8, AZUL_OSCURO));
+            notas.add(par(cfg.getCuentaBancaria(), 8, AZUL_OSCURO).setMarginBottom(6));
         }
         if (ok(observaciones)) {
-            doc.add(par("\nObservaciones:", 10, PRIMARIO).setBold());
-            doc.add(par(observaciones, 10, SECUNDARIO));
+            notas.add(par("Observaciones", 7, GRIS_TEXTO).setBold());
+            notas.add(par(observaciones, 8, AZUL_OSCURO));
         }
-        if (config != null && ok(config.getNotasPie())) {
-            doc.add(par("\n" + config.getNotasPie(), 9, SECUNDARIO));
+        if (cfg != null && ok(cfg.getNotasPie())) {
+            notas.add(par(cfg.getNotasPie(), 7.5f, GRIS_TEXTO).setMarginTop(4));
         }
+
+        // Columna derecha: totales
+        Table tot = new Table(UnitValue.createPercentArray(new float[]{60, 40}))
+            .setWidth(UnitValue.createPercentValue(100));
+
+        filaTotal(tot, "Base imponible", eur(subtotal), false);
+        filaTotal(tot, "IVA",            eur(totalIva), false);
+
+        // Fila TOTAL destacada
+        SolidBorder topLine = new SolidBorder(AZUL_MEDIO, 1.5f);
+        tot.addCell(new Cell().add(par("TOTAL", 10, AZUL_OSCURO).setBold())
+            .setPadding(6).setBorderTop(topLine).setBorderBottom(Border.NO_BORDER)
+            .setBorderLeft(Border.NO_BORDER).setBorderRight(Border.NO_BORDER));
+        tot.addCell(new Cell().add(par(eur(total), 10, AZUL_MEDIO).setBold()
+            .setTextAlignment(TextAlignment.RIGHT))
+            .setPadding(6).setBorderTop(topLine).setBorderBottom(Border.NO_BORDER)
+            .setBorderLeft(Border.NO_BORDER).setBorderRight(Border.NO_BORDER));
+
+        wrap.addCell(notas);
+        wrap.addCell(new Cell().setBorder(Border.NO_BORDER)); // separador
+        wrap.addCell(new Cell().setBorder(Border.NO_BORDER).add(tot));
+        doc.add(wrap);
     }
 
-    private void seccionPie(Document doc) {
-        doc.add(new LineSeparator(new SolidLine()).setMarginTop(20).setMarginBottom(8));
-        doc.add(new Paragraph("Documento generado con LedgerFlow")
-            .setFontSize(8).setFontColor(SECUNDARIO).setTextAlignment(TextAlignment.CENTER));
+    // ── PIE ──────────────────────────────────────────────────────────────────
+
+    private void pie(Document doc) {
+        doc.add(new LineSeparator(new SolidLine(0.4f)).setMarginTop(16).setMarginBottom(5)
+            .setStrokeColor(BORDE_SUAVE));
+        doc.add(par("Documento generado con LedgerFlow", 7, GRIS_TEXTO)
+            .setTextAlignment(TextAlignment.CENTER));
     }
 
     // ── HELPERS ──────────────────────────────────────────────────────────────
 
-    private Cell celda(String txt, TextAlignment align, DeviceRgb bg) {
-        return new Cell()
-            .add(new Paragraph(txt).setFontSize(10).setFontColor(PRIMARIO).setTextAlignment(align))
-            .setBackgroundColor(bg).setPadding(7)
-            .setBorderLeft(Border.NO_BORDER).setBorderRight(Border.NO_BORDER)
-            .setBorderTop(Border.NO_BORDER).setBorderBottom(new SolidBorder(BORDE, 0.5f));
+    private Paragraph etiquetaSeccion(String txt) {
+        return par(txt, 6.5f, AZUL_MEDIO).setBold()
+            .setCharacterSpacing(0.5f).setMarginBottom(3);
     }
 
-    private void filaTotal(Table t, String label, String valor) {
-        SolidBorder borde = new SolidBorder(BORDE, 0.5f);
-        t.addCell(new Cell().add(new Paragraph(label).setFontSize(10).setBold().setFontColor(PRIMARIO))
-            .setPadding(7).setBorderLeft(Border.NO_BORDER).setBorderRight(Border.NO_BORDER)
+    private void separador(Document doc, float marginTop, float marginBottom) {
+        doc.add(new LineSeparator(new SolidLine(0.5f))
+            .setMarginTop(marginTop).setMarginBottom(marginBottom)
+            .setStrokeColor(BORDE_SUAVE));
+    }
+
+    private Cell celdaFila(String txt, TextAlignment align, DeviceRgb bg, boolean izquierda) {
+        return new Cell()
+            .add(new Paragraph(txt).setFontSize(8.5f).setFontColor(AZUL_OSCURO).setTextAlignment(align))
+            .setBackgroundColor(bg)
+            .setPaddingTop(4).setPaddingBottom(4)
+            .setPaddingLeft(izquierda ? 6 : 3).setPaddingRight(3)
+            .setBorderLeft(Border.NO_BORDER).setBorderRight(Border.NO_BORDER)
+            .setBorderTop(Border.NO_BORDER)
+            .setBorderBottom(new SolidBorder(BORDE_SUAVE, 0.4f));
+    }
+
+    private void filaTotal(Table t, String label, String valor, boolean destacado) {
+        SolidBorder borde = new SolidBorder(BORDE_SUAVE, 0.4f);
+        t.addCell(new Cell().add(par(label, 8.5f, GRIS_TEXTO))
+            .setPadding(4).setBorderLeft(Border.NO_BORDER).setBorderRight(Border.NO_BORDER)
             .setBorderTop(Border.NO_BORDER).setBorderBottom(borde));
-        t.addCell(new Cell().add(new Paragraph(valor).setFontSize(10).setFontColor(PRIMARIO)
-            .setTextAlignment(TextAlignment.RIGHT))
-            .setPadding(7).setBorderLeft(Border.NO_BORDER).setBorderRight(Border.NO_BORDER)
+        t.addCell(new Cell().add(par(valor, 8.5f, AZUL_OSCURO).setTextAlignment(TextAlignment.RIGHT))
+            .setPadding(4).setBorderLeft(Border.NO_BORDER).setBorderRight(Border.NO_BORDER)
             .setBorderTop(Border.NO_BORDER).setBorderBottom(borde));
     }
 
     private Paragraph par(String txt, float size, DeviceRgb color) {
-        return new Paragraph(txt).setFontSize(size).setFontColor(color);
+        return new Paragraph(txt).setFontSize(size).setFontColor(color).setMargin(0);
     }
 
     private boolean ok(String v) { return v != null && !v.isBlank(); }
