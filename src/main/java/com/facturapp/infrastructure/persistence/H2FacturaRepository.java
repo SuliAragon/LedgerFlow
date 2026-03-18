@@ -92,10 +92,25 @@ public class H2FacturaRepository implements FacturaRepository {
             if (factura.getEmpresaId() != null) ps.setLong(5, factura.getEmpresaId()); else ps.setNull(5, java.sql.Types.BIGINT);
             ps.setLong(6, factura.getId());
             ps.executeUpdate();
-            return factura;
         } catch (SQLException e) {
             throw new RuntimeException("Error actualizando factura", e);
         }
+        // Reemplazar líneas: borrar las existentes e insertar las nuevas
+        try (PreparedStatement ps = getConn().prepareStatement(
+                "DELETE FROM lineas_factura WHERE factura_id = ?")) {
+            ps.setLong(1, factura.getId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error borrando líneas de factura", e);
+        }
+        try {
+            for (LineaFactura linea : factura.getLineas()) {
+                insertarLinea(factura.getId(), linea);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error reinsertando líneas de factura", e);
+        }
+        return factura;
     }
 
     @Override

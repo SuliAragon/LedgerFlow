@@ -600,6 +600,59 @@
 }
 
 /* =====================================================
+   BOTONES ESTADO FACTURA (clicables, ciclan el estado)
+   ===================================================== */
+.btn-estado-nopagada {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-font-size: 11px;
+    -fx-background-radius: 6px;
+    -fx-padding: 4 10 4 10;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-min-width: 90px;
+}
+.btn-estado-nopagada:hover { -fx-background-color: #dc2626; }
+
+.btn-estado-pendiente {
+    -fx-background-color: #f59e0b;
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-font-size: 11px;
+    -fx-background-radius: 6px;
+    -fx-padding: 4 10 4 10;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-min-width: 90px;
+}
+.btn-estado-pendiente:hover { -fx-background-color: #d97706; }
+
+.btn-estado-pagada {
+    -fx-background-color: #22c55e;
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-font-size: 11px;
+    -fx-background-radius: 6px;
+    -fx-padding: 4 10 4 10;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-min-width: 90px;
+}
+.btn-estado-pagada:hover { -fx-background-color: #16a34a; }
+
+.btn-estado-anulada {
+    -fx-background-color: #64748b;
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-font-size: 11px;
+    -fx-background-radius: 6px;
+    -fx-padding: 4 10 4 10;
+    -fx-border-width: 0;
+    -fx-min-width: 90px;
+}
+
+/* =====================================================
    TOTALES FACTURA
    ===================================================== */
 .totales-grid {

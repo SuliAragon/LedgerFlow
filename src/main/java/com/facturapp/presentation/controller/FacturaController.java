@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 /**
- * Controlador de la sección Facturas: listado, creación y generación PDF.
+ * Controlador de la sección Facturas: listado, creación, edición y generación PDF.
  */
 public class FacturaController implements Initializable {
 
@@ -45,8 +45,9 @@ public class FacturaController implements Initializable {
     @FXML private ComboBox<Cliente> cmbClienteFiltro;
     @FXML private VBox panelLista;
 
-    // --- Panel nueva factura ---
+    // --- Panel nueva/editar factura ---
     @FXML private VBox panelNuevaFactura;
+    @FXML private Label lblTituloForm;
     @FXML private ComboBox<Cliente> cmbCliente;
     @FXML private ComboBox<EmpresaConfig> cmbEmpresa;
     @FXML private TextArea txtObservaciones;
@@ -77,6 +78,9 @@ public class FacturaController implements Initializable {
 
     private final ObservableList<LineaFactura> lineasActuales = FXCollections.observableArrayList();
 
+    /** Factura que se está editando; null si es una nueva. */
+    private Factura facturaEditando = null;
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         facturaUseCase       = AppContext.getInstance().getFacturaUseCase();
@@ -104,32 +108,108 @@ public class FacturaController implements Initializable {
                 ? d.getValue().getFechaEmision().toString() : "-"));
         colTotal.setCellValueFactory(d -> new SimpleStringProperty(
             String.format("%,.2f €", d.getValue().getTotal())));
-        colEstado.setCellValueFactory(d -> new SimpleStringProperty(
-            d.getValue().getEstado().getEtiqueta()));
 
+        // Columna Estado: botón clicable que cicla el estado
+        colEstado.setCellFactory(col -> new TableCell<>() {
+            final Button btnEstado = new Button();
+            {
+                btnEstado.setOnAction(e -> {
+                    int idx = getIndex();
+                    if (idx >= 0 && idx < getTableView().getItems().size()) {
+                        ciclarEstado(getTableView().getItems().get(idx));
+                    }
+                });
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || getIndex() < 0 || getIndex() >= getTableView().getItems().size()) {
+                    setGraphic(null);
+                } else {
+                    Factura f = getTableView().getItems().get(getIndex());
+                    btnEstado.setDisable(false);
+                    aplicarEstiloEstado(btnEstado, f.getEstado());
+                    setGraphic(btnEstado);
+                }
+            }
+        });
+
+        // Columna Acciones: PDF | Editar | Anular
         colAcciones.setCellFactory(col -> new TableCell<>() {
-            final Button btnPdf     = new Button("PDF");
-            final Button btnPagada  = new Button("Pagada");
-            final Button btnAnular  = new Button("Anular");
-            final HBox botones = new HBox(5, btnPdf, btnPagada, btnAnular);
+            final Button btnPdf    = new Button("PDF");
+            final Button btnEditar = new Button("Editar");
+            final Button btnAnular = new Button("Anular");
+            final HBox botones = new HBox(5, btnPdf, btnEditar, btnAnular);
 
             {
                 btnPdf.getStyleClass().add("btn-primary");
-                btnPagada.getStyleClass().add("btn-success");
+                btnEditar.getStyleClass().add("btn-secondary");
                 btnAnular.getStyleClass().add("btn-danger");
                 btnPdf.setOnAction(e -> generarPdf(getTableView().getItems().get(getIndex())));
-                btnPagada.setOnAction(e -> marcarPagada(getTableView().getItems().get(getIndex())));
+                btnEditar.setOnAction(e -> editarFactura(getTableView().getItems().get(getIndex())));
                 btnAnular.setOnAction(e -> anularFactura(getTableView().getItems().get(getIndex())));
             }
 
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                setGraphic(empty ? null : botones);
+                if (empty || getIndex() < 0 || getIndex() >= getTableView().getItems().size()) {
+                    setGraphic(null);
+                } else {
+                    Factura f = getTableView().getItems().get(getIndex());
+                    boolean anulada = f.getEstado() == Factura.Estado.ANULADA;
+                    btnEditar.setDisable(anulada);
+                    btnAnular.setDisable(anulada);
+                    setGraphic(botones);
+                }
             }
         });
 
         tablaFacturas.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+    }
+
+    /** Aplica el estilo y texto del botón según el estado de la factura. */
+    private void aplicarEstiloEstado(Button btn, Factura.Estado estado) {
+        btn.getStyleClass().removeAll(
+            "btn-estado-nopagada", "btn-estado-pendiente",
+            "btn-estado-pagada", "btn-estado-anulada");
+        switch (estado) {
+            case BORRADOR, EMITIDA -> {
+                btn.setText("No Pagada");
+                btn.getStyleClass().add("btn-estado-nopagada");
+            }
+            case PENDIENTE -> {
+                btn.setText("Pendiente");
+                btn.getStyleClass().add("btn-estado-pendiente");
+            }
+            case PAGADA -> {
+                btn.setText("Pagada");
+                btn.getStyleClass().add("btn-estado-pagada");
+            }
+            case ANULADA -> {
+                btn.setText("Anulada");
+                btn.getStyleClass().add("btn-estado-anulada");
+                btn.setDisable(true);
+            }
+        }
+    }
+
+    /** Cicla el estado: No Pagada → Pendiente → Pagada → No Pagada */
+    private void ciclarEstado(Factura factura) {
+        if (factura.getEstado() == Factura.Estado.ANULADA) return;
+        Factura.Estado siguiente = switch (factura.getEstado()) {
+            case BORRADOR, EMITIDA -> Factura.Estado.PENDIENTE;
+            case PENDIENTE         -> Factura.Estado.PAGADA;
+            case PAGADA            -> Factura.Estado.EMITIDA;
+            default                -> factura.getEstado();
+        };
+        try {
+            facturaUseCase.cambiarEstado(factura.getId(), siguiente);
+            cargarFacturas();
+        } catch (Exception e) {
+            AlertUtil.mostrarError("Error", e.getMessage());
+        }
     }
 
     private void cargarFacturas() {
@@ -148,7 +228,6 @@ public class FacturaController implements Initializable {
             resultados = facturaUseCase.listarFacturas();
         }
 
-        // Filtro adicional por cliente si está seleccionado
         Cliente clienteSel = cmbClienteFiltro.getValue();
         if (clienteSel != null) {
             resultados = resultados.stream()
@@ -178,19 +257,6 @@ public class FacturaController implements Initializable {
         }
     }
 
-    private void marcarPagada(Factura factura) {
-        if (factura.getEstado() == Factura.Estado.ANULADA) {
-            AlertUtil.mostrarAdvertencia("No permitido", "No se puede cambiar una factura anulada.");
-            return;
-        }
-        try {
-            facturaUseCase.cambiarEstado(factura.getId(), Factura.Estado.PAGADA);
-            cargarFacturas();
-        } catch (Exception e) {
-            AlertUtil.mostrarError("Error", e.getMessage());
-        }
-    }
-
     private void anularFactura(Factura factura) {
         boolean confirm = AlertUtil.mostrarConfirmacion("Anular factura",
             "¿Deseas anular la factura " + factura.getNumero() + "?\nEsta acción no se puede deshacer.");
@@ -205,7 +271,7 @@ public class FacturaController implements Initializable {
     }
 
     // ============================================================
-    //  PANEL NUEVA FACTURA
+    //  PANEL NUEVA / EDITAR FACTURA
     // ============================================================
 
     private void configurarTablaLineas() {
@@ -222,8 +288,10 @@ public class FacturaController implements Initializable {
 
         colLinAccion.setCellFactory(col -> new TableCell<>() {
             final Button btnEliminar = new Button("✕");
-            { btnEliminar.getStyleClass().add("btn-danger");
-              btnEliminar.setOnAction(e -> eliminarLinea(getIndex())); }
+            {
+                btnEliminar.getStyleClass().add("btn-danger");
+                btnEliminar.setOnAction(e -> eliminarLinea(getIndex()));
+            }
 
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -246,7 +314,6 @@ public class FacturaController implements Initializable {
 
         cmbEmpresa.setItems(FXCollections.observableArrayList(empresaConfigUseCase.listar()));
 
-        // Al seleccionar producto, rellenar precio automáticamente
         cmbProducto.setOnAction(e -> {
             Producto p = cmbProducto.getValue();
             if (p != null) txtCantidad.setText("1");
@@ -255,6 +322,8 @@ public class FacturaController implements Initializable {
 
     @FXML
     private void onNuevaFactura() {
+        facturaEditando = null;
+        lblTituloForm.setText("Datos de la Factura");
         lineasActuales.clear();
         cmbCliente.setValue(null);
         cmbEmpresa.setValue(null);
@@ -262,6 +331,31 @@ public class FacturaController implements Initializable {
         txtCantidad.setText("1");
         txtDescuento.setText("0");
         actualizarTotales();
+        mostrarPanelNueva();
+    }
+
+    /** Carga una factura existente en el formulario para editarla. */
+    private void editarFactura(Factura factura) {
+        facturaEditando = factura;
+        lblTituloForm.setText("Editar Factura: " + factura.getNumero());
+
+        cmbCliente.setValue(factura.getCliente());
+
+        if (factura.getEmpresaId() != null) {
+            cmbEmpresa.getItems().stream()
+                .filter(e -> e.getId().equals(factura.getEmpresaId()))
+                .findFirst()
+                .ifPresent(cmbEmpresa::setValue);
+        } else {
+            cmbEmpresa.setValue(null);
+        }
+
+        txtObservaciones.setText(factura.getObservaciones() != null ? factura.getObservaciones() : "");
+
+        lineasActuales.clear();
+        lineasActuales.addAll(factura.getLineas());
+        actualizarTotales();
+
         mostrarPanelNueva();
     }
 
@@ -318,21 +412,33 @@ public class FacturaController implements Initializable {
 
         try {
             Long empresaId = cmbEmpresa.getValue() != null ? cmbEmpresa.getValue().getId() : null;
-            Factura nueva = facturaUseCase.crearFactura(
-                cmbCliente.getValue().getId(),
-                empresaId,
-                new ArrayList<>(lineasActuales),
-                txtObservaciones.getText().trim()
-            );
 
-            AlertUtil.mostrarExito("Factura creada",
-                "Factura " + nueva.getNumero() + " creada correctamente.\n" +
-                "Total: " + String.format("%,.2f €", nueva.getTotal()));
+            if (facturaEditando == null) {
+                // Crear nueva factura
+                Factura nueva = facturaUseCase.crearFactura(
+                    cmbCliente.getValue().getId(),
+                    empresaId,
+                    new ArrayList<>(lineasActuales),
+                    txtObservaciones.getText().trim()
+                );
+                AlertUtil.mostrarExito("Factura creada",
+                    "Factura " + nueva.getNumero() + " creada correctamente.\n" +
+                    "Total: " + String.format("%,.2f €", nueva.getTotal()));
+                boolean generarPdf = AlertUtil.mostrarConfirmacion("Generar PDF",
+                    "¿Deseas generar el PDF ahora?");
+                if (generarPdf) generarPdf(nueva);
+            } else {
+                // Actualizar factura existente
+                facturaEditando.setCliente(cmbCliente.getValue());
+                facturaEditando.setEmpresaId(empresaId);
+                facturaEditando.setObservaciones(txtObservaciones.getText().trim());
+                facturaEditando.setLineas(new ArrayList<>(lineasActuales));
 
-            // Ofrecer generar PDF inmediatamente
-            boolean generarPdf = AlertUtil.mostrarConfirmacion("Generar PDF",
-                "¿Deseas generar el PDF ahora?");
-            if (generarPdf) generarPdf(nueva);
+                Factura actualizada = facturaUseCase.actualizarFactura(facturaEditando);
+                AlertUtil.mostrarExito("Factura actualizada",
+                    "Factura " + actualizada.getNumero() + " actualizada correctamente.\n" +
+                    "Total: " + String.format("%,.2f €", actualizada.getTotal()));
+            }
 
             cargarFacturas();
             mostrarPanelLista();

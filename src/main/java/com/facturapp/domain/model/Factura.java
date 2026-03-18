@@ -23,8 +23,9 @@ public class Factura {
 
     /** Estados posibles de la factura */
     public enum Estado {
-        BORRADOR("Borrador"),
-        EMITIDA("Emitida"),
+        BORRADOR("No Pagada"),
+        EMITIDA("No Pagada"),
+        PENDIENTE("Pendiente"),
         PAGADA("Pagada"),
         ANULADA("Anulada");
 

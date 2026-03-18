@@ -79,7 +79,7 @@
 
                 <!-- Datos generales de la factura -->
                 <VBox styleClass="card" spacing="16">
-                    <Label text="Datos de la Factura" styleClass="card-title"/>
+                    <Label fx:id="lblTituloForm" text="Datos de la Factura" styleClass="card-title"/>
                     <GridPane hgap="16" vgap="12">
                         <columnConstraints>
                             <ColumnConstraints percentWidth="50"/>

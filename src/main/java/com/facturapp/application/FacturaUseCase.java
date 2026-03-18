@@ -69,6 +69,18 @@ public class FacturaUseCase {
     }
 
     /**
+     * Actualiza una factura existente (cabecera + líneas).
+     */
+    public Factura actualizarFactura(Factura factura) {
+        if (factura.getLineas() == null || factura.getLineas().isEmpty()) {
+            throw new IllegalArgumentException("La factura debe tener al menos una línea.");
+        }
+        Factura guardada = facturaRepository.save(factura);
+        log.info("Factura actualizada: " + guardada.getNumero());
+        return guardada;
+    }
+
+    /**
      * Cambia el estado de una factura existente.
      */
     public Factura cambiarEstado(Long facturaId, Factura.Estado nuevoEstado) {
